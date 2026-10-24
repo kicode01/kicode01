@@ -47,6 +47,10 @@ jobs:
           fi
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets stats.json
+          # README.md is included because generate.py rewrites the one sentence
+          # that quotes live numbers.
+          git add assets stats.json README.md
           git commit -m "chore: refresh profile assets"
+          # A push can land between checkout and here; rebase rather than fail.
+          git pull --rebase --autostash origin main
           git push
