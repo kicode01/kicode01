@@ -54,7 +54,7 @@ A neurosymbolic writing suite where every rewrite is a deterministic AST transfo
 </p>
 
 <!-- activity:start -->
-Most of that activity is recent — 129 of the 227 contributions landed in October alone. The ramp is steep, and the graph shows it.
+Most of that activity is recent — 120 of the 218 contributions landed in October alone. The ramp is steep, and the graph shows it.
 <!-- activity:end -->
 
 ---
