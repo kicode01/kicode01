@@ -25,6 +25,17 @@ LOGIN = "kicode01"
 TAGLINE = "I write compilers, flash firmware, and ship the web apps on top."
 CARD_W = 880          # every card shares this width so the README lines up
 
+# GitHub's own language colours, hardcoded so the language bar does not depend
+# on the GraphQL round-trip succeeding.
+LANG_COLORS = {
+    "Python": "#3572A5", "TypeScript": "#3178c6", "JavaScript": "#f1e05a",
+    "HTML": "#e34c26", "CSS": "#663399", "Jupyter Notebook": "#DA5B0B",
+    "C++": "#f34b7d", "C": "#555555", "PHP": "#4F5D95", "LLVM": "#185619",
+    "WebAssembly": "#04133b", "Dockerfile": "#384d54", "OpenSCAD": "#e5cd45",
+    "Batchfile": "#C1F12E", "MDX": "#fcb32c", "Shell": "#89e051",
+    "Java": "#b07219", "Go": "#00ADD8", "Rust": "#dea584", "Vue": "#41b883",
+}
+
 # ---------------------------------------------------------------- palettes ---
 THEMES = {
     "dark": {
@@ -83,27 +94,49 @@ query {
 
 
 def fetch():
-    q = " ".join(QL.split())
-    gql = json.loads(gh(["api", "graphql", "-f", "query=" + q]))["data"]["user"]
+    # REST profile + repos. These work with the default Actions GITHUB_TOKEN.
+    # (`gh api user` does not — it is a user-scoped endpoint and an installation
+    # token has no user context, so it 403s in CI.)
+    user = json.loads(gh(["api", "users/" + LOGIN]))
     repos = json.loads(gh(["api", "users/%s/repos?per_page=100&sort=pushed" % LOGIN]))
-    user = json.loads(gh(["api", "user"]))
 
-    days = []
-    for w in gql["contributionsCollection"]["contributionCalendar"]["weeks"]:
-        for d in w["contributionDays"]:
-            days.append([d["date"], d["contributionCount"]])
+    # Contribution data needs GraphQL and, depending on the token, may not be
+    # reachable. Losing it should degrade the heatmap, not break the build —
+    # fall back to whatever the last run recorded.
+    contrib, prev = None, {}
+    try:
+        q = " ".join(QL.split())
+        gql = json.loads(gh(["api", "graphql", "-f", "query=" + q]))["data"]["user"]
+        contrib = gql["contributionsCollection"]
+    except Exception as exc:  # noqa: BLE001 — any failure here is non-fatal
+        prev = _previous_stats()
+        print("! contribution data unavailable (%s)" % exc, file=sys.stderr)
+        if not prev:
+            raise
 
-    colors = {}
-    for n in gql["repositories"]["nodes"]:
-        for e in n["languages"]["edges"]:
-            colors[e["node"]["name"]] = e["node"]["color"]
+    if contrib:
+        cal = contrib["contributionCalendar"]
+        days = [[d["date"], d["contributionCount"]]
+                for w in cal["weeks"] for d in w["contributionDays"]]
+        totals = {
+            "total_contributions": cal["totalContributions"],
+            "commits": contrib["totalCommitContributions"],
+            "prs": contrib["totalPullRequestContributions"],
+            "repos_contributed": contrib["totalRepositoriesWithContributedCommits"],
+        }
+    else:
+        print("  reusing the contribution series already in stats.json", file=sys.stderr)
+        days = prev["days"]
+        totals = {k: prev[k] for k in
+                  ("total_contributions", "commits", "prs", "repos_contributed")}
 
     # Primary-language share across repos that actually contain code. Raw byte
     # totals mislead (one repo carries 3 MB of generated HTML), and what a
-    # reader wants to know is simply "what do you build with".
+    # reader wants to know is simply "what do you build with". The profile repo
+    # itself is excluded — it is tooling for this page, not a project.
     by_lang = defaultdict(int)
     for r in repos:
-        if r["language"]:
+        if r["language"] and r["name"] != LOGIN:
             by_lang[r["language"]] += 1
 
     stats = {
@@ -113,14 +146,10 @@ def fetch():
         "created_at": user["created_at"],
         "public_repos": user["public_repos"],
         "followers": user["followers"],
-        "total_contributions": gql["contributionsCollection"]["contributionCalendar"]["totalContributions"],
-        "commits": gql["contributionsCollection"]["totalCommitContributions"],
-        "prs": gql["contributionsCollection"]["totalPullRequestContributions"],
-        "repos_contributed": gql["contributionsCollection"]["totalRepositoriesWithContributedCommits"],
         "total_stars": sum(r["stargazers_count"] for r in repos),
         "days": days,
         "lang_counts": dict(by_lang),
-        "lang_colors": colors,
+        "lang_colors": LANG_COLORS,
         "generated": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d"),
         "repos": [{
             "name": r["name"], "description": r["description"],
@@ -128,10 +157,19 @@ def fetch():
             "homepage": r["homepage"], "topics": r["topics"],
             "pushed_at": r["pushed_at"], "license": (r.get("license") or {}).get("spdx_id"),
         } for r in repos],
+        **totals,
     }
     with open(os.path.join(ROOT, "stats.json"), "w", encoding="utf-8") as f:
         json.dump(stats, f, indent=2, ensure_ascii=False)
     return stats
+
+
+def _previous_stats():
+    p = os.path.join(ROOT, "stats.json")
+    if not os.path.exists(p):
+        return {}
+    with open(p, encoding="utf-8") as f:
+        return json.load(f)
 
 
 def derive(stats):
@@ -431,6 +469,50 @@ def heatmap(t):
     return "".join(o)
 
 
+# --------------------------------------------------------------- readme glue --
+MD_START = "<!-- activity:start -->"
+MD_END = "<!-- activity:end -->"
+
+
+def update_readme(S):
+    """Rewrite the one sentence in README.md that quotes live numbers.
+
+    Everything else on the page either comes from an SVG or is stable prose, so
+    this is the only place that would otherwise drift as commits accumulate.
+    """
+    p = os.path.join(ROOT, "README.md")
+    if not os.path.exists(p):
+        return
+    with open(p, encoding="utf-8") as f:
+        md = f.read()
+    if MD_START not in md or MD_END not in md:
+        return
+
+    monthly = defaultdict(int)
+    for d, c in S["days"]:
+        monthly[d[:7]] += c
+    if not monthly:
+        return
+
+    month_key, peak = max(monthly.items(), key=lambda kv: kv[1])
+    total = S["total_contributions"] or 1
+    name = dt.date.fromisoformat(month_key + "-01").strftime("%B")
+
+    if peak / total >= 0.35:
+        line = (f"Most of that activity is recent — {peak} of the {total} "
+                f"contributions landed in {name} alone. The ramp is steep, and "
+                f"the graph shows it.")
+    else:
+        line = (f"{total} contributions across the year, peaking at {peak} in "
+                f"{name}. The graph shows it honestly.")
+
+    head, rest = md.split(MD_START, 1)
+    _, tail = rest.split(MD_END, 1)
+    with open(p, "w", encoding="utf-8", newline="\n") as f:
+        f.write(f"{head}{MD_START}\n{line}\n{MD_END}{tail}")
+    print(f"  README.md activity sentence updated")
+
+
 def main():
     global STATS
     STATS = load()
@@ -443,6 +525,8 @@ def main():
             with open(path, "w", encoding="utf-8") as f:
                 f.write(svg)
             print(f"  {name}-{theme}.svg  {len(svg)/1024:.1f} KB")
+
+    update_readme(STATS)
 
     print(f"\nRepos {STATS['public_repos']}  contributions {STATS['total_contributions']}  "
           f"active days {STATS['active_days']}  best streak {STATS['longest_streak']}d")

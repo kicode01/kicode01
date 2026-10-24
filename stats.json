@@ -3,12 +3,8 @@
   "name": "Kian18",
   "bio": "Computer Engineering student adept in software dev, system design, and teamwork. Eager to apply skills to build user-friendly apps and gain industry experience.",
   "created_at": "2023-11-14T14:34:31Z",
-  "public_repos": 18,
+  "public_repos": 19,
   "followers": 0,
-  "total_contributions": 222,
-  "commits": 212,
-  "prs": 1,
-  "repos_contributed": 9,
   "total_stars": 2,
   "days": [
     [
@@ -1469,7 +1465,7 @@
     ],
     [
       "2026-10-25",
-      6
+      11
     ]
   ],
   "lang_counts": {
@@ -1481,24 +1477,39 @@
     "Jupyter Notebook": 1
   },
   "lang_colors": {
-    "CSS": "#663399",
-    "JavaScript": "#f1e05a",
-    "MDX": "#fcb32c",
-    "Jupyter Notebook": "#DA5B0B",
-    "HTML": "#e34c26",
     "Python": "#3572A5",
     "TypeScript": "#3178c6",
-    "PHP": "#4F5D95",
+    "JavaScript": "#f1e05a",
+    "HTML": "#e34c26",
+    "CSS": "#663399",
+    "Jupyter Notebook": "#DA5B0B",
     "C++": "#f34b7d",
-    "OpenSCAD": "#e5cd45",
     "C": "#555555",
-    "Dockerfile": "#384d54",
+    "PHP": "#4F5D95",
     "LLVM": "#185619",
     "WebAssembly": "#04133b",
-    "Batchfile": "#C1F12E"
+    "Dockerfile": "#384d54",
+    "OpenSCAD": "#e5cd45",
+    "Batchfile": "#C1F12E",
+    "MDX": "#fcb32c",
+    "Shell": "#89e051",
+    "Java": "#b07219",
+    "Go": "#00ADD8",
+    "Rust": "#dea584",
+    "Vue": "#41b883"
   },
   "generated": "2026-10-24",
   "repos": [
+    {
+      "name": "kicode01",
+      "description": "Profile README — every number generated from the GitHub API and rendered as hand-built SVG.",
+      "language": "Python",
+      "stars": 0,
+      "homepage": null,
+      "topics": [],
+      "pushed_at": "2026-10-24T20:50:25Z",
+      "license": null
+    },
     {
       "name": "blackmamba-lang",
       "description": "Black Mamba (.bmb) — High-speed, zero-cost-abstraction programming language solving Python's speed limits. Write like Python, execute like C, compile anywhere.",
@@ -1516,7 +1527,7 @@
         "x86-64",
         "zero-cost-abstractions"
       ],
-      "pushed_at": "2026-10-24T19:11:24Z",
+      "pushed_at": "2026-10-24T20:28:12Z",
       "license": "MIT"
     },
     {
@@ -1689,5 +1700,9 @@
       "pushed_at": "2024-09-20T12:18:57Z",
       "license": null
     }
-  ]
+  ],
+  "total_contributions": 227,
+  "commits": 216,
+  "prs": 1,
+  "repos_contributed": 10
 }

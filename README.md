@@ -2,7 +2,7 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/hero-dark.svg">
   <source media="(prefers-color-scheme: light)" srcset="assets/hero-light.svg">
-  <img src="assets/hero-light.svg" width="100%" alt="Kian (@kicode01) — Computer Engineering student. I write compilers, flash firmware, and ship the web apps on top. 18 public repos, 222 contributions this year, 212 commits, on GitHub since 2023.">
+  <img src="assets/hero-light.svg" width="100%" alt="Kian (@kicode01) — Computer Engineering student. I write compilers, flash firmware, and ship the web apps on top.">
 </picture>
 </p>
 
@@ -42,18 +42,20 @@ A neurosymbolic writing suite where every rewrite is a deterministic AST transfo
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/activity-dark.svg">
     <source media="(prefers-color-scheme: light)" srcset="assets/activity-light.svg">
-    <img src="assets/activity-light.svg" width="100%" alt="Contribution heatmap: 222 contributions in the last year, 21 active days, best streak 6 days.">
+    <img src="assets/activity-light.svg" width="100%" alt="Contribution heatmap for the past year, generated from the GitHub API.">
   </picture>
 </p>
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/langs-dark.svg">
     <source media="(prefers-color-scheme: light)" srcset="assets/langs-light.svg">
-    <img src="assets/langs-light.svg" width="100%" alt="Language mix by primary language across 14 repositories: Python 28.6%, TypeScript 28.6%, HTML 21.4%, CSS 7.1%, JavaScript 7.1%, Jupyter Notebook 7.1%.">
+    <img src="assets/langs-light.svg" width="100%" alt="Language mix by primary language across repositories.">
   </picture>
 </p>
 
-Most of that activity is recent — 124 of the 222 contributions landed in October alone, after a quiet first half of the year. The graph is honest about it.
+<!-- activity:start -->
+Most of that activity is recent — 129 of the 227 contributions landed in October alone. The ramp is steep, and the graph shows it.
+<!-- activity:end -->
 
 ---
 
