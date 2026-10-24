@@ -1,0 +1,52 @@
+name: Refresh profile assets
+
+# Keeps the banner, heatmap, and language bar current. The alternative — a
+# third-party stat-card service — goes down, gets rate-limited, or silently
+# serves a cached image; regenerating from the API costs nothing and never rots.
+
+on:
+  schedule:
+    - cron: "17 4 * * 1"      # Mondays, 04:17 UTC
+  workflow_dispatch:           # manual run from the Actions tab
+  push:
+    branches: [main]
+    paths:
+      - "generate.py"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-profile
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # gh is preinstalled on GitHub-hosted runners and reads GH_TOKEN directly.
+      # The default token is usually enough for public contribution data; if the
+      # GraphQL query comes back empty, add a classic PAT with `read:user` as a
+      # PROFILE_TOKEN secret and it will be preferred automatically.
+      - name: Regenerate SVG assets
+        env:
+          GH_TOKEN: ${{ secrets.PROFILE_TOKEN || secrets.GITHUB_TOKEN }}
+        run: python generate.py --fetch
+
+      - name: Commit if anything changed
+        run: |
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "Assets already current — nothing to commit."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets stats.json
+          git commit -m "chore: refresh profile assets"
+          git push
