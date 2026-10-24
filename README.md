@@ -47,7 +47,7 @@ Currently building **[Black Mamba](https://github.com/kicode01/blackmamba-lang)*
 ```
 direction   applied ai — systems underneath, models on top
 method      core logic is mine · scaffolding is ai-assisted · all of it reviewed
-evidence    klyph-txt — generate, score, select
+evidence    typenscrape · meemomini · klyph-txt
 not yet     model training and fine-tuning
 ```
 
@@ -62,6 +62,8 @@ There's a longer version [below](#02--ai).
 
 ```
 drwxr-xr-x  blackmamba-lang/            compiler · python · llvm · wasm
+drwxr-xr-x  typenscrape/                recipes · groq→gemini · indexeddb
+drwxr-xr-x  meemomini/                  photo booth · mediapipe · pwa
 drwxr-xr-x  klyph-txt/                  nlp · llm rewriter · candidate scoring
 drwxr-xr-x  shim-platform/              certificates · qr verification · prisma
 drwxr-xr-x  voltsense-iot/              esp32 firmware · react pwa · firebase
@@ -71,7 +73,7 @@ drwxr-xr-x  oppa-k-ramyeon-hub/         php · html · shipped and live
 drwxr-xr-x  employee-attendance-viewer/ pyside6 · desktop · mit
 ```
 
-Four of them are worth your time. They're below.
+Six of them are worth your time. They're below.
 
 </details>
 
@@ -80,7 +82,7 @@ Four of them are worth your time. They're below.
 
 <br>
 
-**AI** — LLM integration · candidate generation + scoring · spaCy · NLTK · LanguageTool · WordNet<br>
+**AI** — LLM integration (Groq, Gemini) · on-device vision (MediaPipe) · candidate generation + scoring · spaCy · NLTK · LanguageTool<br>
 **Systems** — Python · C · C++ · x86-64 · WebAssembly · LLVM IR<br>
 **Web** — TypeScript · React 19 · Next.js 15 · Vite · Tailwind · Node<br>
 **Data & cloud** — Firebase (RTDB, FCM) · Vercel · Dexie · Shopify Storefront API<br>
@@ -97,11 +99,11 @@ The actual log of the repository you're reading. The page regenerates it, so it 
 
 <!-- log:start -->
 ```
+3808006  Feature shim-platform as M-03
 2aaa830  Trim the AI section to direction and method
 1bfdc66  Reposition toward applied AI, and state the method plainly
 d25616a  Rebuild the profile as an instrument panel with a working console
 16e4a8f  Make the profile animate itself
-0c68510  Require a user-scoped token for the refresh job
 ```
 <!-- log:end -->
 
@@ -139,7 +141,23 @@ Python's syntax, C's execution model, no borrow checker in between. A lexer and 
 
 `Python · x86-64 · LLVM IR · C · WebAssembly`
 
-<sub>`M-02` &nbsp;·&nbsp; NLP &nbsp;·&nbsp; LLM &nbsp;·&nbsp; EVALUATION</sub>
+<sub>`M-02` &nbsp;·&nbsp; LLM &nbsp;·&nbsp; OFFLINE-FIRST &nbsp;·&nbsp; MOBILE</sub>
+
+#### [TypenScrape](https://github.com/kicode01/typenscrape)
+
+Three ways to get a recipe: search a local database that keeps working offline, look one up on Spoonacular, or generate one from whatever is in the fridge. Generation tries Groq first — Llama 3 answers faster than the alternative — and drops to Gemini when that fails, so a rate limit degrades the response instead of breaking it. The local database is sixteen chunks pulled in one at a time into IndexedDB, because peak memory is the binding constraint on the phones this targets.
+
+`React 18 · TypeScript · Vite · IndexedDB · Groq · Gemini · Firestore`
+
+<sub>`M-03` &nbsp;·&nbsp; COMPUTER VISION &nbsp;·&nbsp; ON-DEVICE &nbsp;·&nbsp; PWA</sub>
+
+#### [meemomini](https://github.com/kicode01/meemomini)
+
+A photo booth that runs entirely in the browser, computer vision included. MediaPipe's `ImageSegmenter` does background removal on-device — no frame leaves the machine and nothing waits on a server — then filters, export to still, GIF or MP4, and a QR code to hand the result to whoever is in the photo. Installable as a PWA.
+
+`React 18 · TypeScript · MediaPipe · Vite · Firebase · PWA`
+
+<sub>`M-04` &nbsp;·&nbsp; NLP &nbsp;·&nbsp; LLM &nbsp;·&nbsp; EVALUATION</sub>
 
 #### [klyph-txt](https://github.com/kicode01/klyph-txt)
 
@@ -147,7 +165,7 @@ A text-engineering suite built as a scoring loop rather than a prompt. Nine para
 
 `Python · spaCy · AST · LanguageTool · WordNet · LLM`
 
-<sub>`M-03` &nbsp;·&nbsp; FULL-STACK &nbsp;·&nbsp; VERIFIABLE CREDENTIALS &nbsp;·&nbsp; NEXT.JS</sub>
+<sub>`M-05` &nbsp;·&nbsp; FULL-STACK &nbsp;·&nbsp; VERIFIABLE CREDENTIALS &nbsp;·&nbsp; NEXT.JS</sub>
 
 #### [shim-platform](https://github.com/kicode01/shim-platform)
 
@@ -155,7 +173,7 @@ An organizer creates an event, imports the attendee list, designs a certificate 
 
 `Next.js 16 · React 19 · Prisma · next-auth · jsPDF · QR verification` &nbsp;—&nbsp; **[live ↗](https://shim-hq.vercel.app)**
 
-<sub>`M-04` &nbsp;·&nbsp; FIRMWARE &nbsp;·&nbsp; SERVERLESS &nbsp;·&nbsp; PWA</sub>
+<sub>`M-06` &nbsp;·&nbsp; FIRMWARE &nbsp;·&nbsp; SERVERLESS &nbsp;·&nbsp; PWA</sub>
 
 #### [VoltSense](https://github.com/kicode01/voltsense-iot)
 
@@ -196,7 +214,7 @@ The tail-call kernel is left out on purpose: CPython raises `RecursionError` on 
 </p>
 
 <!-- signal:start -->
-**131 of 229** contributions landed in October alone. Flat for months, then it isn't.
+**143 of 236** contributions landed in October alone. Flat for months, then it isn't.
 <!-- signal:end -->
 
 I'd rather show the shape of the year than a streak counter.

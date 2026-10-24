@@ -1,11 +1,11 @@
 {
   "login": "kicode01",
-  "name": "Kian18",
+  "name": null,
   "bio": "Computer Engineering student adept in software dev, system design, and teamwork. Eager to apply skills to build user-friendly apps and gain industry experience.",
   "created_at": "2023-11-14T14:34:31Z",
   "public_repos": 19,
   "followers": 0,
-  "total_stars": 2,
+  "total_stars": 3,
   "days": [
     [
       "2025-10-26",
@@ -1313,7 +1313,7 @@
     ],
     [
       "2026-09-17",
-      8
+      3
     ],
     [
       "2026-09-18",
@@ -1465,14 +1465,15 @@
     ],
     [
       "2026-10-25",
-      13
+      25
     ]
   ],
   "lang_counts": {
-    "Python": 4,
+    "TypeScript": 5,
+    "LLVM": 1,
     "JavaScript": 1,
     "HTML": 3,
-    "TypeScript": 4,
+    "Python": 3,
     "CSS": 1,
     "Jupyter Notebook": 1
   },
@@ -1492,28 +1493,49 @@
     "OpenSCAD": "#e5cd45",
     "Batchfile": "#C1F12E",
     "MDX": "#fcb32c",
-    "Shell": "#89e051",
-    "Java": "#b07219",
-    "Go": "#00ADD8",
-    "Rust": "#dea584",
-    "Vue": "#41b883"
+    "Shell": "#89e051"
   },
   "generated": "2026-10-24",
   "repos": [
     {
-      "name": "kicode01",
-      "description": "Profile README — every number generated from the GitHub API and rendered as hand-built SVG.",
-      "language": "Python",
+      "name": "typenscrape",
+      "description": "Mobile-first recipe app — offline searchable database in IndexedDB, Spoonacular lookup, and LLM generation with Groq-to-Gemini fallback.",
+      "language": "TypeScript",
       "stars": 0,
       "homepage": null,
-      "topics": [],
-      "pushed_at": "2026-10-24T20:54:40Z",
+      "topics": [
+        "firebase",
+        "indexeddb",
+        "llm",
+        "pwa",
+        "react",
+        "typescript",
+        "vite"
+      ],
+      "pushed_at": "2026-10-24T22:19:59Z",
+      "license": null
+    },
+    {
+      "name": "meemomini",
+      "description": "Browser photo booth PWA — MediaPipe background removal, AR filters, GIF/MP4 export, QR sharing.",
+      "language": "TypeScript",
+      "stars": 1,
+      "homepage": null,
+      "topics": [
+        "computer-vision",
+        "firebase",
+        "mediapipe",
+        "pwa",
+        "react",
+        "typescript"
+      ],
+      "pushed_at": "2026-10-24T22:09:14Z",
       "license": null
     },
     {
       "name": "blackmamba-lang",
       "description": "Black Mamba (.bmb) — High-speed, zero-cost-abstraction programming language solving Python's speed limits. Write like Python, execute like C, compile anywhere.",
-      "language": "Python",
+      "language": "LLVM",
       "stars": 1,
       "homepage": "https://github.com/kicode01/blackmamba-lang",
       "topics": [
@@ -1527,8 +1549,18 @@
         "x86-64",
         "zero-cost-abstractions"
       ],
-      "pushed_at": "2026-10-24T20:28:12Z",
+      "pushed_at": "2026-10-24T22:06:01Z",
       "license": "MIT"
+    },
+    {
+      "name": "kicode01",
+      "description": "Profile README — every number generated from the GitHub API and rendered as hand-built SVG.",
+      "language": "Python",
+      "stars": 0,
+      "homepage": null,
+      "topics": [],
+      "pushed_at": "2026-10-24T22:01:58Z",
+      "license": null
     },
     {
       "name": "voltsense-iot",
@@ -1551,33 +1583,13 @@
       "license": null
     },
     {
-      "name": "shim-platform-v2",
+      "name": "shim-platform",
       "description": null,
       "language": "TypeScript",
       "stars": 0,
       "homepage": "https://shim-hq.vercel.app",
       "topics": [],
       "pushed_at": "2026-10-12T13:37:22Z",
-      "license": null
-    },
-    {
-      "name": "shim",
-      "description": null,
-      "language": null,
-      "stars": 0,
-      "homepage": null,
-      "topics": [],
-      "pushed_at": "2026-09-17T01:03:44Z",
-      "license": null
-    },
-    {
-      "name": "shim-platform",
-      "description": null,
-      "language": "TypeScript",
-      "stars": 0,
-      "homepage": "https://shim-platform-nine.vercel.app",
-      "topics": [],
-      "pushed_at": "2026-09-17T00:46:29Z",
       "license": null
     },
     {
@@ -1701,8 +1713,8 @@
       "license": null
     }
   ],
-  "total_contributions": 229,
-  "commits": 218,
+  "total_contributions": 236,
+  "commits": 226,
   "prs": 1,
-  "repos_contributed": 10
+  "repos_contributed": 11
 }
