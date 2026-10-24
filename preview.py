@@ -41,6 +41,14 @@ display:table;overflow:auto;font-size:14.5px}
 .markdown-body p[align="center"] img{display:inline-block}
 .markdown-body sub{font-size:12px;color:var(--muted)}
 .markdown-body strong{font-weight:600}
+.markdown-body h4{font-size:1.05em;font-weight:600;margin:14px 0 8px}
+.markdown-body details{margin:0 0 12px}
+.markdown-body summary{cursor:pointer;font-weight:600;line-height:1.6}
+.markdown-body summary code{font-size:13px}
+.markdown-body details[open]>summary{margin-bottom:4px}
+.markdown-body pre{background:var(--code-bg);padding:16px;border-radius:6px;
+overflow:auto;margin:0 0 16px;font-size:12.5px;line-height:1.45}
+.markdown-body pre code{background:none;padding:0;font-size:inherit}
 """
 
 
@@ -53,11 +61,15 @@ def build(theme):
 
     # <picture> picks its <source> by prefers-color-scheme, which headless Chrome
     # reports as dark regardless of the page. Strip the sources and pin the <img>
-    # to the variant we actually want to inspect, so both files are deterministic.
+    # to the variant we want to inspect, so both files are deterministic.
+    #
+    # The preview uses the `-static` twins: a screenshot fires before any wall
+    # clock elapses, so the animated files would capture at t=0 with everything
+    # still at opacity 0. The settled state is what a reader sees after ~2s, and
+    # it is what these previews should show.
     body = re.sub(r"<source\b[^>]*>", "", body)
     if theme == "dark":
-        for name in ("hero", "activity", "langs", "bench"):
-            body = body.replace(f"assets/{name}-light.svg", f"assets/{name}-dark.svg")
+        body = body.replace("-light-static.svg", "-dark-static.svg")
 
     vars_ = {
         "light": ("#ffffff", "#1f2328", "#d1d9e0", "#0969da", "#f6f8fa", "#f6f8fa",

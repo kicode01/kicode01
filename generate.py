@@ -1,16 +1,23 @@
 """
-Generates the animated SVG assets for kicode01's GitHub profile README.
+Generates the animated SVG assets behind the profile README.
 
-The trick this file is built around: GitHub strips <script>, <style>, and inline
-SVG from READMEs, but it happily serves an .svg file as an <img>. Inside that
-image, CSS animations still run. So the banner can type itself, and the charts
-can draw themselves, with no JavaScript and no third-party service.
+What makes this more than a poster:
 
-Two rules keep that from becoming a liability:
-  1. The base state of every element is its *final* state. Animation only ever
-     adds motion — if a renderer ignores CSS, the page still reads correctly.
-  2. `prefers-reduced-motion` disables everything inside the SVG, and the README
-     swaps in a genuinely static file for anyone who asks for it.
+  1. GitHub strips <script>, <style> and inline <svg> from a README, but it
+     happily serves an .svg *file* as an <img> — and CSS animations inside that
+     image still run. So the page can move with no JavaScript at all.
+  2. Every animated asset has a static twin, selected by a
+     `prefers-reduced-motion` media query in <picture>. Almost nobody wires
+     that up; it is the difference between a gimmick and something that
+     respects its reader.
+  3. Every number is read from the API. Nothing on the page is typed by hand.
+
+Two invariants keep the animation honest:
+  * The base state of each element is its FINAL state. Animation only adds
+    motion; if a renderer ignores CSS the page still reads correctly.
+  * Wipes use <mask> with an animated rect width. `clip-path: inset()` resolves
+    against the SVG viewport rather than the element box, so it is unusable
+    here.
 
 Usage:
     python generate.py            # uses stats.json if present, else fetches
@@ -29,45 +36,47 @@ ASSETS = os.path.join(ROOT, "assets")
 LOGIN = "kicode01"
 
 TAGLINE = "I write compilers, flash firmware, and ship the web apps on top."
-CARD_W = 880
 
-# GitHub's language colours, hardcoded so the language bar does not depend on
-# the GraphQL round-trip succeeding.
 LANG_COLORS = {
     "Python": "#3572A5", "TypeScript": "#3178c6", "JavaScript": "#f1e05a",
     "HTML": "#e34c26", "CSS": "#663399", "Jupyter Notebook": "#DA5B0B",
     "C++": "#f34b7d", "C": "#555555", "PHP": "#4F5D95", "LLVM": "#185619",
     "WebAssembly": "#04133b", "Dockerfile": "#384d54", "OpenSCAD": "#e5cd45",
     "Batchfile": "#C1F12E", "MDX": "#fcb32c", "Shell": "#89e051",
-    "Java": "#b07219", "Go": "#00ADD8", "Rust": "#dea584", "Vue": "#41b883",
 }
 
-# Transcribed from blackmamba-lang's own benchmark table (README, "Performance").
-# Re-run that suite in the repo before trusting these after a compiler change.
+TICKER = [
+    "PYTHON", "C", "C++", "X86-64", "LLVM IR", "WEBASSEMBLY", "TYPESCRIPT",
+    "REACT", "NEXT.JS", "VITE", "TAILWIND", "FIREBASE", "ESP32", "OPENSCAD",
+    "SPACY", "SHOPIFY API", "NODE", "GIT",
+]
+
+# Transcribed from blackmamba-lang's own benchmark table. Re-run that suite in
+# the repo before trusting these after a compiler change.
 BENCH = [
     ("fib(32)", 288.62, 11.078, "26.1x"),
     ("collatz(40k)", 227.84, 8.291, "27.5x"),
-    ("mandelbrot(120²)", 39.14, 3.368, "11.6x"),
+    ("mandelbrot(120x120)", 39.14, 3.368, "11.6x"),
     ("count_primes(30k)", 22.05, 1.730, "12.7x"),
 ]
 
-# ---------------------------------------------------------------- palettes ---
+# --------------------------------------------------------------- palettes ----
+# Amber on near-black. Flat by design: hairlines and spacing carry the structure,
+# so the page reads like an instrument panel rather than a poster.
 THEMES = {
     "dark": {
-        "bg0": "#0b0f16", "bg1": "#10151f", "panel": "#0d131c",
-        "panel_edge": "#1e2733", "text": "#e9eef6", "muted": "#8d99aa",
-        "faint": "#4a5567", "accent": "#5ce0a8", "accent2": "#9d8cff",
-        "grid": "#ffffff", "grid_op": "0.035", "glow_op": "0.15",
-        "heat": ["#161c26", "#123a2b", "#1a6b4c", "#2ba574", "#5ce0a8"],
-        "dot": "#2a3340", "track": "#1b2330",
+        "bg0": "#08090B", "bg1": "#0B0E11", "panel": "#0F1317",
+        "rule": "#1E242B", "text": "#F3F5F8", "dim": "#98A3AF",
+        # `micro` is for 9-11px caps. `faint` is structure only (rules, dot
+        # leaders) and must never carry text — at that size it disappears.
+        "micro": "#7E8A97", "faint": "#39414B", "accent": "#FFA028",
+        "bar": "#2A323C",
     },
     "light": {
-        "bg0": "#ffffff", "bg1": "#f4f7fb", "panel": "#fbfcfe",
-        "panel_edge": "#dbe3ed", "text": "#0c141f", "muted": "#586575",
-        "faint": "#9aa6b5", "accent": "#0a8f5f", "accent2": "#6b52e0",
-        "grid": "#0c141f", "grid_op": "0.05", "glow_op": "0.09",
-        "heat": ["#e7ecf2", "#bdeed8", "#74d5ae", "#2cb184", "#0a8f5f"],
-        "dot": "#c6ced9", "track": "#e8edf4",
+        "bg0": "#FBFAF7", "bg1": "#F6F4EF", "panel": "#FFFFFF",
+        "rule": "#E3DED4", "text": "#111418", "dim": "#4E5661",
+        "micro": "#5A6270", "faint": "#A7ACB4", "accent": "#C2410C",
+        "bar": "#C9C2B2",
     },
 }
 
@@ -76,30 +85,16 @@ SANS = ("-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,"
 MONO = ("ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,"
         "'Liberation Mono',monospace")
 
-# Every keyframe starts hidden and ends at the element's real state, and every
-# animated element uses fill-mode "both". Nothing here is load-bearing: strip the
-# animation and the layout is unchanged.
-#
-# Wipes use a <mask> with an animated rect width. clip-path:inset() resolves
-# against the SVG viewport rather than the element's own box, and SMIL <animate>
-# does not run here, so both were tested and rejected.
 CSS = """
-.a-fade{animation:fadeIn .55s ease-out both}
-.a-rise{animation:riseIn .7s cubic-bezier(.22,.68,.2,1) both}
-.a-slide{animation:slideIn .7s cubic-bezier(.22,.68,.2,1) both}
-.a-grow{transform-box:fill-box;transform-origin:0 50%;animation:growX .85s cubic-bezier(.3,.8,.25,1) both}
-.a-col{animation:fadeIn .5s ease-out both}
-.wmKian{animation:wKian .9s cubic-bezier(.65,0,.25,1) both}
-.wmCmd{animation:wCmd .95s steps(17,end) both}
-.wmBar{animation:wBar .85s cubic-bezier(.65,0,.25,1) both}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-@keyframes riseIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-@keyframes slideIn{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:translateX(0)}}
-@keyframes growX{from{transform:scaleX(0)}to{transform:scaleX(1)}}
-@keyframes wKian{from{width:0}to{width:300px}}
-@keyframes wCmd{from{width:0}to{width:148px}}
-@keyframes wBar{from{width:0}to{width:820px}}
-@keyframes blink{0%,48%{opacity:1}49%,100%{opacity:0}}
+.f{animation:fi .32s ease-out both}
+.r{animation:ri .42s cubic-bezier(.22,.68,.2,1) both}
+.gx{transform-box:fill-box;transform-origin:0 50%;animation:gx .7s cubic-bezier(.3,.8,.25,1) both}
+.gy{transform-box:fill-box;transform-origin:50% 100%;animation:gy .55s cubic-bezier(.2,.8,.2,1) both}
+@keyframes fi{from{opacity:0}to{opacity:1}}
+@keyframes ri{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+@keyframes gx{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes gy{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+@keyframes bl{0%,45%{opacity:1}55%,100%{opacity:0}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 """
 
@@ -130,21 +125,26 @@ query {
 """ % LOGIN
 
 
+def _previous_stats():
+    p = os.path.join(ROOT, "stats.json")
+    if not os.path.exists(p):
+        return {}
+    with open(p, encoding="utf-8") as f:
+        return json.load(f)
+
+
 def fetch():
-    # REST profile + repos. These work with the default Actions GITHUB_TOKEN.
-    # (`gh api user` does not — it is a user-scoped endpoint and an installation
-    # token has no user context, so it 403s in CI.)
+    # users/{login}, not /user: the default Actions token is an installation
+    # token with no user context, so /user 403s in CI.
     user = json.loads(gh(["api", "users/" + LOGIN]))
     repos = json.loads(gh(["api", "users/%s/repos?per_page=100&sort=pushed" % LOGIN]))
 
-    # Contribution data needs GraphQL and a user-scoped token. Losing it should
-    # degrade the heatmap, not break the build.
     contrib, prev = None, {}
     try:
         q = " ".join(QL.split())
         gql = json.loads(gh(["api", "graphql", "-f", "query=" + q]))["data"]["user"]
         contrib = gql["contributionsCollection"]
-    except Exception as exc:  # noqa: BLE001 — any failure here is non-fatal
+    except Exception as exc:  # noqa: BLE001 — losing this must not break a build
         prev = _previous_stats()
         print("! contribution data unavailable (%s)" % exc, file=sys.stderr)
         if not prev:
@@ -161,30 +161,22 @@ def fetch():
             "repos_contributed": contrib["totalRepositoriesWithContributedCommits"],
         }
     else:
-        print("  reusing the contribution series already in stats.json", file=sys.stderr)
         days = prev["days"]
         totals = {k: prev[k] for k in
                   ("total_contributions", "commits", "prs", "repos_contributed")}
 
-    # Primary-language share across repos that actually contain code. Raw byte
-    # totals mislead (one repo carries 3 MB of generated HTML). The profile repo
-    # itself is excluded — it is tooling for this page, not a project.
     by_lang = defaultdict(int)
     for r in repos:
+        # The profile repo is tooling for this page, not a project.
         if r["language"] and r["name"] != LOGIN:
             by_lang[r["language"]] += 1
 
     stats = {
-        "login": user["login"],
-        "name": user["name"],
-        "bio": user["bio"],
-        "created_at": user["created_at"],
-        "public_repos": user["public_repos"],
+        "login": user["login"], "name": user["name"], "bio": user["bio"],
+        "created_at": user["created_at"], "public_repos": user["public_repos"],
         "followers": user["followers"],
         "total_stars": sum(r["stargazers_count"] for r in repos),
-        "days": days,
-        "lang_counts": dict(by_lang),
-        "lang_colors": LANG_COLORS,
+        "days": days, "lang_counts": dict(by_lang), "lang_colors": LANG_COLORS,
         "generated": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d"),
         "repos": [{
             "name": r["name"], "description": r["description"],
@@ -199,47 +191,30 @@ def fetch():
     return stats
 
 
-def _previous_stats():
-    p = os.path.join(ROOT, "stats.json")
-    if not os.path.exists(p):
-        return {}
-    with open(p, encoding="utf-8") as f:
-        return json.load(f)
-
-
-def derive(stats):
-    """Metrics that are cheaper to compute here than to store."""
-    days = [(dt.date.fromisoformat(d), c) for d, c in stats["days"]]
-    stats["active_days"] = sum(1 for _, c in days if c > 0)
+def derive(s):
+    days = [(dt.date.fromisoformat(d), c) for d, c in s["days"]]
+    s["active_days"] = sum(1 for _, c in days if c > 0)
 
     longest = cur = 0
-    run_start = None
-    best_range = None
+    start = best = None
     for date, c in days:
         if c > 0:
             if cur == 0:
-                run_start = date
+                start = date
             cur += 1
             if cur > longest:
-                longest, best_range = cur, (run_start, date)
+                longest, best = cur, (start, date)
         else:
             cur = 0
-    stats["longest_streak"] = longest
-    stats["longest_streak_range"] = (
-        [d.isoformat() for d in best_range] if best_range else None)
+    s["longest_streak"] = longest
+    s["longest_streak_range"] = [d.isoformat() for d in best] if best else None
 
-    cur_streak = 0
-    for date, c in reversed(days):
-        if c > 0:
-            cur_streak += 1
-        elif date == days[-1][0]:
-            continue
-        else:
-            break
-    stats["current_streak"] = cur_streak
-    best = max(days, key=lambda x: x[1])
-    stats["best_day"] = [best[0].isoformat(), best[1]]
-    return stats
+    monthly = defaultdict(int)
+    for d, c in days:
+        monthly[d.strftime("%Y-%m")] += c
+    s["monthly"] = [{"month": m, "count": c}
+                    for m, c in sorted(monthly.items())][-12:]
+    return s
 
 
 def load():
@@ -252,431 +227,352 @@ def load():
     return derive(fetch())
 
 
-# ------------------------------------------------------------- svg helpers ---
-def head(w, h, extra=""):
+def recent_commits(n=5):
+    """The terminal prints this repo's real git log, so it cannot go stale."""
+    try:
+        out = json.loads(gh(["api", "repos/%s/%s/commits?per_page=%d"
+                             % (LOGIN, LOGIN, n)]))
+        return [(c["sha"][:7], c["commit"]["message"].split("\n")[0]) for c in out]
+    except Exception:  # noqa: BLE001
+        return []
+
+
+# ------------------------------------------------------------ svg helpers ----
+def head(w, h, motion):
+    css = f"<style>{CSS}</style>" if motion else ""
     return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" '
-            f'viewBox="0 0 {w} {h}" fill="none" role="img">{extra}')
+            f'viewBox="0 0 {w} {h}" fill="none" role="img">{css}')
 
 
-def AC(motion, cls):
-    """Animation class, or nothing when this is the static build."""
-    return cls if motion else ""
-
-
-def DL(motion, delay):
-    """Animation delay, or None when this is the static build."""
-    return delay if motion else None
-
-
-def anim(motion, cls="", delay=None, style=""):
-    """Build class/style attributes in one place so `style` is never emitted twice."""
-    parts = []
-    if style:
-        parts.append(style)
-    if motion and delay is not None:
-        parts.append(f"animation-delay:{delay:.2f}s")
-    out = f' class="{cls}"' if (motion and cls) else ""
-    if parts:
-        out += f' style="{";".join(parts)}"'
+def A(motion, cls="", delay=None):
+    """Class + inline delay, or empty for the static twin."""
+    if not motion:
+        return ""
+    out = f' class="{cls}"' if cls else ""
+    if delay is not None:
+        out += f' style="animation-delay:{delay:.2f}s"'
     return out
 
 
 def text(x, y, s, size=14, fill="#000", weight="400", family=SANS,
-         anchor="start", ls=0, op=1.0, style="", cls="", delay=None, tlen=None):
-    parts = []
-    if style:
-        parts.append(style)
-    if delay is not None:
-        parts.append(f"animation-delay:{delay:.2f}s")
+         anchor="start", ls=0, op=1.0, motion=False, cls="", delay=None,
+         tlen=None, style=""):
     return (f'<text x="{x}" y="{y}" font-family="{family}" font-size="{size}" '
             f'font-weight="{weight}" fill="{fill}" text-anchor="{anchor}"'
             + (f' letter-spacing="{ls}"' if ls else "")
             + (f' opacity="{op}"' if op != 1.0 else "")
-            + (f' class="{cls}"' if cls else "")
-            + (f' style="{";".join(parts)}"' if parts else "")
+            + (f' style="{style}"' if style else "")
+            + A(motion, cls, delay)
             + (f' textLength="{tlen}" lengthAdjust="spacingAndGlyphs"' if tlen else "")
             + f'>{escape(str(s))}</text>')
 
 
-def card_bg(W, H, P, radius=12):
-    return (
-        f'<rect width="{W}" height="{H}" rx="{radius}" fill="{P["bg0"]}"/>'
-        f'<rect x="0.5" y="0.5" width="{W-1}" height="{H-1}" rx="{radius-0.5}" '
-        f'fill="none" stroke="{P["panel_edge"]}" stroke-width="1"/>'
-    )
+def rule(x1, y1, x2, y2, color, op=1.0):
+    return (f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" '
+            f'stroke="{color}" stroke-width="1" opacity="{op}"/>')
 
 
-def eyebrow(x, y, label, P, size=11.5, ls=2.2, motion=None, delay=None):
-    return (f'<circle cx="{x+5}" cy="{y-4.5}" r="{size*0.30:.1f}" '
-            f'fill="{P["accent"]}" {anim(motion, "a-fade", delay) if motion is not None else ""}/>'
-            + text(x + 5 + size * 1.0, y, label, size=size, fill=P["accent"],
-                   weight="700", ls=ls,
-                   cls=AC(motion, "a-fade") if motion is not None else "",
-                   delay=DL(motion, delay) if motion is not None else None))
+def label(x, y, s, P, size=10, ls=1.6, anchor="start", motion=False, delay=None):
+    return text(x, y, s, size=size, fill=P["micro"], weight="700", family=MONO,
+                ls=ls, anchor=anchor, motion=motion, cls="f", delay=delay)
 
 
-# -------------------------------------------------------------------- hero ---
-def hero(t, motion=True):
-    """1280x348 banner that types itself once, then holds still."""
-    W, H = 1280, 348
+# ------------------------------------------------------------------- hero ----
+def boot(t, motion=True):
+    """1280x400. Identity on the left, a boot log that types itself on the right."""
+    W, H = 1280, 400
     P = THEMES[t]
-    o = [head(W, H, f"<style>{CSS}</style>" if motion else "")]
+    o = [head(W, H, motion)]
 
-    o.append(f"""<defs>
-<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-  <stop offset="0" stop-color="{P['bg0']}"/><stop offset="1" stop-color="{P['bg1']}"/>
-</linearGradient>
-<radialGradient id="glow" cx="0.16" cy="0.12" r="0.7">
-  <stop offset="0" stop-color="{P['accent']}" stop-opacity="{P['glow_op']}"/>
-  <stop offset="1" stop-color="{P['accent']}" stop-opacity="0"/>
-</radialGradient>
-<radialGradient id="glow2" cx="0.95" cy="0.95" r="0.62">
-  <stop offset="0" stop-color="{P['accent2']}" stop-opacity="{P['glow_op']}"/>
-  <stop offset="1" stop-color="{P['accent2']}" stop-opacity="0"/>
-</radialGradient>
-<linearGradient id="topline" x1="0" y1="0" x2="1" y2="0">
-  <stop offset="0" stop-color="{P['accent']}" stop-opacity="0"/>
-  <stop offset="0.3" stop-color="{P['accent']}" stop-opacity="0.9"/>
-  <stop offset="0.7" stop-color="{P['accent2']}" stop-opacity="0.9"/>
-  <stop offset="1" stop-color="{P['accent2']}" stop-opacity="0"/>
-</linearGradient>
-<pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
-  <path d="M32 0H0V32" stroke="{P['grid']}" stroke-opacity="{P['grid_op']}" stroke-width="1"/>
-</pattern>""")
+    o.append(f"""<defs><linearGradient id="wash" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="{P['bg1']}"/><stop offset="0.6" stop-color="{P['bg0']}"/>
+</linearGradient></defs>""")
+    o.append(f'<rect width="{W}" height="{H}" fill="url(#wash)"/>')
 
-    # masks are only emitted for the animated build; the static file needs none.
-    # Coordinates are absolute — the command text sits at y = cy + 78.
-    if motion:
-        o.append(f"""
-<mask id="mKian" maskUnits="userSpaceOnUse" x="40" y="110" width="320" height="100">
-  <rect x="64" y="110" width="300" height="100" fill="#fff"
-        class="wmKian" style="animation-delay:.30s"/>
-</mask>
-<mask id="mCmd" maskUnits="userSpaceOnUse" x="885" y="{72+58}" width="175" height="36">
-  <rect x="891" y="{72+58}" width="148" height="36" fill="#fff"
-        class="wmCmd" style="animation-delay:1.05s"/>
-</mask>""")
-
-    o.append("</defs>")
-
-    o.append(f'<rect width="{W}" height="{H}" fill="url(#bg)"/>')
-    o.append(f'<rect width="{W}" height="{H}" fill="url(#grid)"/>')
-    o.append(f'<rect width="{W}" height="{H}" fill="url(#glow)"/>')
-    o.append(f'<rect width="{W}" height="{H}" fill="url(#glow2)"/>')
-    o.append(f'<rect x="0" y="0" width="{W}" height="2" fill="url(#topline)" '
-             f'{anim(motion, "a-fade", 0.05)}/>')
+    # ---- top strip
+    o.append(rule(0, 44, W, 44, P["rule"]))
+    o.append(f'<circle cx="58" cy="22" r="3.5" fill="{P["accent"]}" {A(motion, "f", 0.05)}/>')
+    o.append(text(70, 26, "ONLINE", size=10.5, fill=P["accent"], weight="700",
+                  family=MONO, ls=1.8, motion=motion, cls="f", delay=0.08))
+    o.append(text(150, 26, "/ PROFILE", size=10.5, fill=P["micro"], weight="600",
+                  family=MONO, ls=1.8, motion=motion, cls="f", delay=0.12))
+    o.append(text(W - 56, 26, "SYNC " + STATS["generated"], size=10.5,
+                  fill=P["micro"], weight="600", family=MONO, ls=1.6,
+                  anchor="end", motion=motion, cls="f", delay=0.16))
 
     # ---- left: identity
-    o.append(eyebrow(66, 101, "COMPUTER ENGINEERING  ·  SYSTEMS & WEB", P,
-                     size=14, motion=motion, delay=0.15))
-    kian = text(64, 186, "Kian", size=76, fill=P["text"], weight="800", ls=-1.8)
-    o.append(f'<g mask="url(#mKian)">{kian}</g>' if motion else kian)
-    o.append(text(67, 216, "@" + STATS["login"], size=15, fill=P["faint"],
-                  weight="600", family=MONO, ls=0.6,
-                  cls=AC(motion, "a-fade"), delay=DL(motion, 0.95)))
-    o.append(text(66, 256, TAGLINE, size=22, fill=P["muted"], weight="400",
-                  ls=-0.15, cls=AC(motion, "a-rise"), delay=DL(motion, 1.05)))
+    o.append(text(56, 114, "COMPUTER ENGINEERING  /  SYSTEMS & WEB", size=11,
+                  fill=P["dim"], weight="600", family=MONO, ls=2.0,
+                  motion=motion, cls="f", delay=0.22))
+    o.append(text(52, 198, "KIAN", size=88, fill=P["text"], weight="800",
+                  ls=-3.0, motion=motion, cls="r", delay=0.30))
+    o.append(text(56, 240, TAGLINE, size=20, fill=P["dim"], weight="400",
+                  ls=-0.2, motion=motion, cls="r", delay=0.46))
 
-    fx = 66
-    facts = [
-        (f"{STATS['public_repos']}", "public repos"),
-        (f"{STATS['total_contributions']}", "contributions / yr"),
-        (f"{STATS['commits']}", "commits / yr"),
-        (f"since {STATS['created_at'][:4]}", "on GitHub"),
+    # ---- right: boot log
+    px, py, pw, ph = 676, 68, 548, 228
+    o.append(f'<rect x="{px}" y="{py}" width="{pw}" height="{ph}" '
+             f'fill="{P["panel"]}" stroke="{P["rule"]}" stroke-width="1" '
+             f'{A(motion, "f", 0.20)}/>')
+    o.append(text(px + 18, py + 22, "boot.log", size=10.5, fill=P["micro"],
+                  weight="600", family=MONO, ls=0.8, motion=motion, cls="f", delay=0.30))
+    o.append(text(px + pw - 18, py + 22, "tty0", size=10.5, fill=P["micro"],
+                  weight="600", family=MONO, ls=0.8, anchor="end",
+                  motion=motion, cls="f", delay=0.30))
+    o.append(rule(px, py + 34, px + pw, py + 34, P["rule"]))
+
+    rows = [
+        ("init", "kian@" + STATS["login"]),
+        ("role", "computer engineering"),
+        ("target", "x86-64 / wasm / llvm ir"),
+        ("indexed", "%d repositories" % STATS["public_repos"]),
+        ("commits", "%d / 12 mo" % STATS["commits"]),
+        ("status", "open to internships"),
     ]
-    for i, (big, small) in enumerate(facts):
-        d = 1.20 + i * 0.10
-        o.append(text(fx, 292, big, size=20, fill=P["text"], weight="700",
-                      family=MONO, cls=AC(motion, "a-rise"), delay=DL(motion, d)))
-        o.append(text(fx, 312, small, size=13, fill=P["faint"], weight="500",
-                      ls=0.4, cls=AC(motion, "a-rise"), delay=DL(motion, d + 0.05)))
-        fx += 154
-        if i < len(facts) - 1:
-            o.append(f'<rect x="{fx-38}" y="274" width="1" height="40" '
-                     f'fill="{P["panel_edge"]}" {anim(motion, "a-fade", d)}/>')
+    CW = 7.9  # mono advance at 13px, close enough to align the dot leaders
+    # len(key) + 1 + len(dots) + 1 is constant, so every value lands in the same
+    # column regardless of how long the key is.
+    LEAD = 10
+    for i, (k, v) in enumerate(rows):
+        d = 0.42 + i * 0.13
+        y = py + 56 + i * 20
+        dots = "." * (LEAD - len(k))
+        o.append(text(px + 18, y, k, size=13, fill=P["micro"], weight="600",
+                      family=MONO, motion=motion, cls="f", delay=d))
+        o.append(text(px + 18 + CW * (len(k) + 1), y, dots, size=13,
+                      fill=P["faint"], weight="400", family=MONO, op=0.5,
+                      motion=motion, cls="f", delay=d))
+        o.append(text(px + 18 + CW * (LEAD + 2), y, v,
+                      size=13, fill=P["dim"], weight="400", family=MONO,
+                      motion=motion, cls="f", delay=d))
 
-    # ---- right: terminal card, tied to blackmamba-lang
-    cx, cy, cw, ch = 848, 72, 370, 206
-    o.append(f'<g {anim(motion, "a-fade", 0.45)}>'
-             f'<rect x="{cx}" y="{cy}" width="{cw}" height="{ch}" rx="14" '
-             f'fill="{P["panel"]}" stroke="{P["panel_edge"]}" stroke-width="1"/>'
-             f'<rect x="{cx+1}" y="{cy+1}" width="{cw-2}" height="22" rx="13" '
-             f'fill="{P["grid"]}" fill-opacity="0.02"/></g>')
+    ry = py + 56 + (len(rows) - 1) * 20 + 24
+    o.append(text(px + 18, ry, ">", size=12.5, fill=P["accent"], weight="700",
+                  family=MONO, motion=motion, cls="f", delay=1.30))
+    o.append(text(px + 32, ry, "ready", size=12.5, fill=P["accent"], weight="700",
+                  family=MONO, motion=motion, cls="f", delay=1.30))
+    cur = ('style="opacity:0;animation:fi .18s ease-out 1.45s both,'
+           'bl 1.05s steps(1) 1.60s infinite"' if motion else 'style="opacity:.9"')
+    o.append(f'<rect x="{px+75}" y="{ry-10}" width="7" height="12" '
+             f'fill="{P["accent"]}" {cur}/>')
 
-    for i, c in enumerate([P["dot"], P["dot"], P["accent"]]):
-        o.append(f'<circle cx="{cx+24+i*15}" cy="{cy+23}" r="4" fill="{c}"'
-                 + (' opacity="0.95"/>' if i == 2 else '/>'))
-    o.append(text(cx + cw - 20, cy + 27, "blackmamba", size=12.5, fill=P["faint"],
-                  weight="500", family=MONO, anchor="end"))
-    o.append(f'<rect x="{cx}" y="{cy+42}" width="{cw}" height="1" fill="{P["panel_edge"]}"/>')
+    # ---- progress bar
+    bx, by, bw = px + 18, py + 210, pw - 36
+    o.append(text(bx, by - 8, "init complete", size=9, fill=P["micro"],
+                  weight="700", family=MONO, ls=1.2, motion=motion, cls="f", delay=1.1))
+    o.append(f'<rect x="{bx}" y="{by}" width="{bw}" height="2" fill="{P["rule"]}"/>')
+    o.append(f'<rect x="{bx}" y="{by}" width="{bw}" height="2" fill="{P["accent"]}" '
+             f'{A(motion, "gx", 1.05)}/>')
 
-    tx = cx + 24
-    # textLength pins the command to an exact width so the steps() wipe below
-    # advances by whole characters whatever monospace font the viewer has.
-    CLEN = 148
-    o.append(text(tx, cy + 78, "$", size=14.5, fill=P["accent"], weight="700",
-                  family=MONO))
-    cmd = text(tx + 19, cy + 78, "bmb run hello.bmb", size=14.5,
-               fill=P["text"], weight="400", family=MONO, tlen=CLEN)
-    o.append(f'<g mask="url(#mCmd)">{cmd}</g>' if motion else cmd)
-
-    cur_style = ("opacity:0;animation:fadeIn .2s ease-out both 1.95s,"
-                 "blink 1.05s steps(1) infinite 2.15s" if motion
-                 else "opacity:0.85")
-    o.append(f'<rect x="{tx + 19 + CLEN + 5}" y="{cy + 64}" width="8" height="17" '
-             f'rx="1.5" fill="{P["accent"]}" style="{cur_style}"/>')
-
-    o.append(text(tx, cy + 106, "hello, world", size=14.5, fill=P["accent"],
-                  weight="600", family=MONO, cls=AC(motion, "a-fade"),
-                  delay=DL(motion, 2.05)))
-    o.append(text(tx + 116, cy + 106, "· 0.9ms", size=14.5, fill=P["faint"],
-                  weight="400", family=MONO, cls=AC(motion, "a-fade"),
-                  delay=DL(motion, 2.20)))
-    o.append(text(tx, cy + 138, "# no interpreter", size=14, fill=P["muted"],
-                  weight="400", family=MONO, style="font-style:italic",
-                  cls=AC(motion, "a-fade"), delay=DL(motion, 2.30)))
-    o.append(text(tx, cy + 158, "# no GIL", size=14, fill=P["muted"],
-                  weight="400", family=MONO, style="font-style:italic",
-                  cls=AC(motion, "a-fade"), delay=DL(motion, 2.42)))
-    o.append(f'<rect x="{tx}" y="{cy+172}" width="{cw-48}" height="1" '
-             f'fill="{P["panel_edge"]}" {anim(motion, "a-fade", 2.50)}/>')
-    o.append(text(tx, cy + 192, "native x86-64  ·  wasm  ·  llvm ir", size=12.5,
-                  fill=P["faint"], weight="500", family=MONO, ls=0.4,
-                  cls=AC(motion, "a-fade"), delay=DL(motion, 2.60)))
+    # ---- metrics strip
+    o.append(rule(0, 320, W, 320, P["rule"]))
+    metrics = [
+        (str(STATS["public_repos"]), "REPOSITORIES"),
+        (str(STATS["total_contributions"]), "CONTRIBUTIONS / 12MO"),
+        (str(STATS["commits"]), "COMMITS / 12MO"),
+        (str(STATS["active_days"]), "ACTIVE DAYS"),
+    ]
+    for i, (v, k) in enumerate(metrics):
+        cx = 56 + i * 292
+        d = 0.9 + i * 0.07
+        if i:
+            o.append(rule(cx - 24, 338, cx - 24, 386, P["rule"]))
+        o.append(label(cx, 350, k, P, motion=motion, delay=d))
+        o.append(text(cx, 384, v, size=28, fill=P["text"], weight="700",
+                      family=MONO, ls=-0.5, motion=motion, cls="r", delay=d + 0.04))
 
     o.append("</svg>")
     return "".join(o)
 
 
-# ---------------------------------------------------------------- heatmap ---
-def heatmap(t, motion=True):
-    """53-week contribution heatmap; columns sweep in left to right."""
+# ----------------------------------------------------------------- ticker ----
+def ticker(t, motion=True):
+    """1280x56 strip of technologies. The motion is the entire point."""
+    W, H = 1280, 56
     P = THEMES[t]
-    cells = [(dt.date.fromisoformat(d), c) for d, c in STATS["days"]]
-    while cells and cells[0][0].weekday() != 6:          # 6 = Sunday
-        cells.insert(0, (cells[0][0] - dt.timedelta(days=1), -1))
-    while len(cells) % 7:
-        cells.append((cells[-1][0] + dt.timedelta(days=1), -1))
+    o = [head(W, H, motion)]
 
-    weeks = len(cells) // 7
-    size, gap = 12, 3
-    grid_w = weeks * (size + gap) - gap
-    left, top = 38, 80
-    W = left + grid_w + 38
-    H = top + 7 * (size + gap) - gap + 52
+    o.append(f'<rect width="{W}" height="{H}" fill="{P["bg0"]}"/>')
+    o.append(rule(0, 0.5, W, 0.5, P["rule"]))
+    o.append(rule(0, H - 0.5, W, H - 0.5, P["rule"]))
+    o.append(f"""<defs>
+<linearGradient id="fade" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0" stop-color="#fff" stop-opacity="0"/>
+  <stop offset="0.06" stop-color="#fff" stop-opacity="1"/>
+  <stop offset="0.94" stop-color="#fff" stop-opacity="1"/>
+  <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+</linearGradient>
+<mask id="edge"><rect width="{W}" height="{H}" fill="url(#fade)"/></mask>
+</defs>""")
 
-    o = [head(W, H, f"<style>{CSS}</style>" if motion else "")]
-    o.append(card_bg(W, H, P))
-    o.append(eyebrow(left, 32, "CONTRIBUTION ACTIVITY", P))
-    o.append(text(left, 54, f"{STATS['total_contributions']} contributions in the last year",
-                  size=12.5, fill=P["muted"], weight="500"))
-    o.append(text(W - left, 54,
-                  f"{STATS['active_days']} active days  ·  best streak {STATS['longest_streak']}d",
-                  size=11, fill=P["faint"], weight="500", family=MONO, anchor="end"))
-
-    mx = max([c for _, c in cells if c > 0] or [1])
-
-    def level(c):
-        if c <= 0:
-            return 0
-        r = c / mx
-        return 4 if r > 0.66 else 3 if r > 0.33 else 2 if r > 0.10 else 1
-
-    seen, last_x = set(), -99
-    for i, (d, _) in enumerate(cells):
-        col = i // 7
-        key = d.strftime("%Y-%m")
-        if d.day <= 7 and key not in seen and col > 0:
-            seen.add(key)
-            x = left + col * (size + gap)
-            if x - last_x >= 34:
-                o.append(text(x, top - 12, d.strftime("%b"), size=10,
-                              fill=P["faint"], weight="600", ls=0.3))
-                last_x = x
-
-    # one <g> per week keeps the cascade cheap: 53 animations, not 364
-    for col in range(weeks):
-        o.append(f'<g {anim(motion, "a-col", 0.15 + col * 0.016)}>')
-        for row in range(7):
-            idx = col * 7 + row
-            if idx >= len(cells):
-                break
-            _, c = cells[idx]
-            if c < 0:
-                continue
-            o.append(f'<rect x="{left + col*(size+gap)}" y="{top + row*(size+gap)}" '
-                     f'width="{size}" height="{size}" rx="2.2" '
-                     f'fill="{P["heat"][level(c)]}"/>')
+    o.append('<g mask="url(#edge)">')
+    if motion:
+        # Two identical copies 1400 apart; sliding exactly -1400 loops seamlessly.
+        o.append("<style>@keyframes sl{from{transform:translateX(0)}"
+                 "to{transform:translateX(-1400px)}}"
+                 "@media (prefers-reduced-motion:reduce){*{animation:none!important}}"
+                 "</style>")
+        o.append('<g style="animation:sl 44s linear infinite">')
+        line = "  ·  ".join(TICKER) + "  ·  "
+        for x in (0, 1400):
+            o.append(f'<text x="{x}" y="35" font-family="{MONO}" font-size="12" '
+                     f'font-weight="600" fill="{P["dim"]}" letter-spacing="1.4" '
+                     f'textLength="1400" lengthAdjust="spacing">'
+                     f'{escape(line)}</text>')
         o.append("</g>")
-
-    for row, lbl in [(1, "Mon"), (3, "Wed"), (5, "Fri")]:
-        o.append(text(left - 10, top + row * (size + gap) + size - 3, lbl,
-                      size=9.5, fill=P["faint"], weight="600", anchor="end"))
-
-    fy = top + 7 * (size + gap) + 18
-    o.append(text(left, fy, f"updated {STATS['generated']}", size=10,
-                  fill=P["faint"], weight="500", family=MONO))
-
-    sw = 5 * (size + gap)
-    sx = W - left - sw - 76
-    o.append(text(sx - 10, fy, "less", size=10, fill=P["faint"], weight="600", anchor="end"))
-    for k in range(5):
-        o.append(f'<rect x="{sx + k*(size+gap)}" y="{fy-9}" width="{size}" '
-                 f'height="{size}" rx="2.2" fill="{P["heat"][k]}"/>')
-    o.append(text(sx + sw + 8, fy, "more", size=10, fill=P["faint"],
-                  weight="600", anchor="start"))
-    o.append("</svg>")
-    return "".join(o)
-
-
-# ------------------------------------------------------------- language bar ---
-def langbar(t, motion=True):
-    W, H = CARD_W, 122
-    P = THEMES[t]
-    counts = STATS["lang_counts"]
-    colors = STATS["lang_colors"]
-    total = sum(counts.values()) or 1
-    items = sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))
-
-    o = [head(W, H, f"<style>{CSS}</style>" if motion else "")]
-    o.append(card_bg(W, H, P))
-    o.append(eyebrow(30, 32, "LANGUAGE MIX", P))
-    o.append(text(W - 30, 32, f"by primary language  ·  {total} repos",
-                  size=11, fill=P["faint"], weight="500", family=MONO, anchor="end"))
-
-    bx, by, bw, bh = 30, 50, W - 60, 14
-    o.append(f'<rect x="{bx}" y="{by}" width="{bw}" height="{bh}" rx="7" fill="{P["track"]}"/>')
-    o.append(f'<defs><clipPath id="barc"><rect x="{bx}" y="{by}" width="{bw}" '
-             f'height="{bh}" rx="7"/></clipPath>'
-             + (f'<mask id="mBar" maskUnits="userSpaceOnUse" x="{bx}" y="{by}" '
-                f'width="{bw}" height="{bh}">'
-                f'<rect x="{bx}" y="{by}" width="{bw}" height="{bh}" fill="#fff" '
-                f'class="wmBar" style="animation-delay:.15s"/></mask>' if motion else "")
-             + '</defs>')
-    # the whole bar wipes in as one gesture — cleaner than segments racing
-    o.append(f'<g clip-path="url(#barc)"'
-             + (' mask="url(#mBar)"' if motion else '') + '>')
-    cursor = bx
-    for i, (name, c) in enumerate(items):
-        seg = bw * c / total
-        if i == len(items) - 1:
-            seg = bx + bw - cursor
-        o.append(f'<rect x="{cursor:.2f}" y="{by}" width="{seg:.2f}" '
-                 f'height="{bh}" fill="{colors.get(name, P["muted"])}"/>')
-        cursor += seg
-        if i < len(items) - 1:
-            o.append(f'<rect x="{cursor-1:.2f}" y="{by}" width="2" height="{bh}" '
-                     f'fill="{P["bg0"]}" opacity="0.85"/>')
+    else:
+        o.append(f'<text x="{W/2}" y="35" font-family="{MONO}" font-size="12" '
+                 f'font-weight="600" fill="{P["dim"]}" letter-spacing="1.6" '
+                 f'text-anchor="middle">'
+                 f'{escape("  ·  ".join(TICKER[:14]))}</text>')
     o.append("</g>")
 
-    lx, ly = 30, 96
-    for i, (name, c) in enumerate(items):
-        pct = round(100 * c / total, 1)
-        label = f"{name} {pct:g}%"
-        wpx = 6.55 * len(label) + 26
-        col = colors.get(name, P["muted"])
-        o.append(f'<g {anim(motion, "a-fade", 0.45 + i * 0.07)}>'
-                 f'<circle cx="{lx+4}" cy="{ly-4}" r="3.6" fill="{col}"/>'
-                 + text(lx + 14, ly, label, size=11, fill=P["muted"],
-                        weight="600", family=MONO, ls=0.2) + "</g>")
-        lx += wpx
     o.append("</svg>")
     return "".join(o)
 
 
-# -------------------------------------------------------------- benchmark ---
-def bench(t, motion=True):
-    """Black Mamba vs CPython on its own kernels. Bars grow from the left."""
-    W, H = CARD_W, 330
+# ------------------------------------------------------------------- bars ----
+def bars(t, motion=True):
+    """1280x250. Monthly contributions, bars growing from the baseline."""
+    W, H = 1280, 250
     P = THEMES[t]
-    o = [head(W, H, f"<style>{CSS}</style>" if motion else "")]
-    o.append(card_bg(W, H, P))
-    o.append(eyebrow(30, 34, "BENCHMARK  ·  BLACK MAMBA vs CPYTHON 3.14", P))
-    o.append(text(W - 30, 34, "lower is better  ·  ms per kernel",
-                  size=11, fill=P["faint"], weight="500", family=MONO, anchor="end"))
+    data = STATS["monthly"]
+    o = [head(W, H, motion)]
+    o.append(f'<rect width="{W}" height="{H}" fill="{P["bg0"]}"/>')
 
-    ly = 62
-    o.append(f'<rect x="30" y="{ly-9}" width="18" height="9" rx="4.5" '
-             f'fill="{P["faint"]}" opacity="0.55"/>')
-    o.append(text(54, ly - 1, "CPython", size=10.5, fill=P["muted"],
-                  weight="600", family=MONO))
-    o.append(f'<rect x="128" y="{ly-9}" width="18" height="9" rx="4.5" fill="{P["accent"]}"/>')
-    o.append(text(152, ly - 1, "Black Mamba", size=10.5, fill=P["muted"],
-                  weight="600", family=MONO))
+    o.append(label(56, 34, "CONTRIBUTIONS / MONTH", P, size=10, ls=1.8,
+                   motion=motion, delay=0.05))
+    o.append(text(W - 56, 34, "%d IN THE LAST 12 MONTHS" % STATS["total_contributions"],
+                  size=10, fill=P["accent"], weight="700", family=MONO, ls=1.6,
+                  anchor="end", motion=motion, cls="f", delay=0.05))
 
-    x0, bar_max = 30, 486
+    base_y, top_y = 186, 66
+    x0, x1 = 56, W - 56
+    slot = (x1 - x0) / max(len(data), 1)
+    bw = slot * 0.5
+    mx = max([d["count"] for d in data] or [1])
+
+    o.append(rule(x0, base_y, x1, base_y, P["rule"]))
+    for frac in (0.5, 1.0):
+        gy = base_y - (base_y - top_y) * frac
+        o.append(rule(x0, gy, x1, gy, P["rule"], 0.4))
+
+    for i, d in enumerate(data):
+        cx = x0 + slot * i + slot / 2
+        h = max((base_y - top_y) * d["count"] / mx, 2.5)
+        last = i == len(data) - 1
+        fill = P["accent"] if last else P["bar"]
+        o.append(f'<rect x="{cx - bw/2:.1f}" y="{base_y - h:.1f}" width="{bw:.1f}" '
+                 f'height="{h:.1f}" fill="{fill}" {A(motion, "gy", 0.1 + i * 0.045)}/>')
+        mon = dt.date.fromisoformat(d["month"] + "-01").strftime("%b").upper()
+        o.append(text(cx, base_y + 20, mon, size=9.5,
+                      fill=P["accent"] if last else P["micro"], weight="700",
+                      family=MONO, ls=0.8, anchor="middle",
+                      motion=motion, cls="f", delay=0.3 + i * 0.045))
+        if d["count"]:
+            o.append(text(cx, base_y - h - 8, str(d["count"]), size=10,
+                          fill=P["accent"] if last else P["dim"], weight="700",
+                          family=MONO, anchor="middle",
+                          motion=motion, cls="f", delay=0.45 + i * 0.045))
+
+    o.append("</svg>")
+    return "".join(o)
+
+
+# ------------------------------------------------------------------ bench ----
+def bench(t, motion=True):
+    """1280x340. Black Mamba vs CPython on the repo's own kernels."""
+    W, H = 1280, 340
+    P = THEMES[t]
+    o = [head(W, H, motion)]
+    o.append(f'<rect width="{W}" height="{H}" fill="{P["bg0"]}"/>')
+
+    o.append(label(56, 34, "BENCHMARK  /  BLACK MAMBA vs CPYTHON 3.14", P,
+                   size=10, ls=1.8, motion=motion, delay=0.05))
+    o.append(text(W - 56, 34, "LOWER IS BETTER  ·  MS PER KERNEL", size=10,
+                  fill=P["faint"], weight="700", family=MONO, ls=1.5,
+                  anchor="end", motion=motion, cls="f", delay=0.05))
+
+    # legend
+    o.append(f'<rect x="56" y="52" width="16" height="8" fill="{P["faint"]}" '
+             f'opacity="0.55" {A(motion, "f", 0.15)}/>')
+    o.append(text(78, 60, "CPYTHON", size=9.5, fill=P["dim"], weight="700",
+                  family=MONO, ls=1.2, motion=motion, cls="f", delay=0.15))
+    o.append(f'<rect x="168" y="52" width="16" height="8" fill="{P["accent"]}" '
+             f'{A(motion, "f", 0.18)}/>')
+    o.append(text(190, 60, "BLACK MAMBA", size=9.5, fill=P["dim"], weight="700",
+                  family=MONO, ls=1.2, motion=motion, cls="f", delay=0.18))
+
+    bar_x, bar_max = 300, 560
     scale = bar_max / 300.0
     y = 96
-    for i, (label, cpy, bmb, speedup) in enumerate(BENCH):
-        d = 0.25 + i * 0.14
-        o.append(f'<g {anim(motion, "a-fade", d)}>'
-                 + text(x0, y + 14, label, size=11.5, fill=P["text"],
-                        weight="600", family=MONO) + "</g>")
-
+    for i, (name, cpy, bmb, sp) in enumerate(BENCH):
+        d = 0.25 + i * 0.13
+        o.append(text(56, y + 12, name, size=12, fill=P["text"], weight="600",
+                      family=MONO, motion=motion, cls="f", delay=d))
         w1 = max(6.0, cpy * scale)
         w2 = max(6.0, bmb * scale)
-        o.append(f'<rect x="{x0+172}" y="{y}" width="{w1:.1f}" height="13" rx="3" '
-                 f'fill="{P["faint"]}" opacity="0.55" {anim(motion, "a-grow", d)}/>')
-        o.append(f'<rect x="{x0+172}" y="{y+19}" width="{w2:.1f}" height="13" rx="3" '
-                 f'fill="{P["accent"]}" {anim(motion, "a-grow", d + 0.06)}/>')
-
-        o.append(text(x0 + 172 + w1 + 9, y + 10, f"{cpy:g}", size=10.5,
-                      fill=P["faint"], weight="500", family=MONO,
-                      cls=AC(motion, "a-fade"), delay=DL(motion, d + 0.25)))
-        o.append(text(x0 + 172 + w2 + 9, y + 29, f"{bmb:g}", size=10.5,
+        o.append(f'<rect x="{bar_x}" y="{y}" width="{w1:.1f}" height="12" '
+                 f'fill="{P["faint"]}" opacity="0.55" {A(motion, "gx", d)}/>')
+        o.append(f'<rect x="{bar_x}" y="{y+18}" width="{w2:.1f}" height="12" '
+                 f'fill="{P["accent"]}" {A(motion, "gx", d + 0.05)}/>')
+        o.append(text(bar_x + w1 + 10, y + 10, f"{cpy:g} ms", size=10,
+                      fill=P["micro"], weight="500", family=MONO,
+                      motion=motion, cls="f", delay=d + 0.3))
+        o.append(text(bar_x + w2 + 10, y + 28, f"{bmb:g} ms", size=10,
                       fill=P["accent"], weight="600", family=MONO,
-                      cls=AC(motion, "a-fade"), delay=DL(motion, d + 0.31)))
+                      motion=motion, cls="f", delay=d + 0.34))
+        o.append(text(W - 56, y + 22, sp, size=22, fill=P["accent"],
+                      weight="700", family=MONO, ls=-0.5, anchor="end",
+                      motion=motion, cls="r", delay=d + 0.28))
+        y += 56
 
-        o.append(f'<g {anim(motion, "a-fade", d + 0.20)}>'
-                 + text(W - 30, y + 24, speedup, size=15, fill=P["accent"],
-                        weight="700", family=MONO, anchor="end") + "</g>")
-        y += 52
-
-    o.append(text(30, H - 20,
-                  "measured with the repo's own suite  ·  tail-call case omitted (CPython recurses out)",
-                  size=10, fill=P["faint"], weight="500", family=MONO))
+    o.append(rule(56, H - 30, W - 56, H - 30, P["rule"]))
+    o.append(text(56, H - 12,
+                  "measured with the repo's own suite  ·  tail-call kernel omitted (CPython recurses out)",
+                  size=9.5, fill=P["micro"], weight="500", family=MONO,
+                  motion=motion, cls="f", delay=0.9))
     o.append("</svg>")
     return "".join(o)
 
 
 # --------------------------------------------------------------- readme glue --
-MD_START = "<!-- activity:start -->"
-MD_END = "<!-- activity:end -->"
+def _replace_block(md, key, body):
+    a, b = f"<!-- {key}:start -->", f"<!-- {key}:end -->"
+    if a not in md or b not in md:
+        return md
+    head_, rest = md.split(a, 1)
+    _, tail = rest.split(b, 1)
+    return f"{head_}{a}\n{body}\n{b}{tail}"
 
 
-def update_readme(S):
-    """Rewrite the one sentence in README.md that quotes live numbers."""
+def update_readme(S, commits):
     p = os.path.join(ROOT, "README.md")
     if not os.path.exists(p):
         return
     with open(p, encoding="utf-8") as f:
         md = f.read()
-    if MD_START not in md or MD_END not in md:
-        return
 
-    monthly = defaultdict(int)
-    for d, c in S["days"]:
-        monthly[d[:7]] += c
-    if not monthly:
-        return
+    monthly = S["monthly"]
+    if monthly:
+        peak = max(monthly, key=lambda d: d["count"])
+        total = S["total_contributions"] or 1
+        name = dt.date.fromisoformat(peak["month"] + "-01").strftime("%B")
+        if peak["count"] / total >= 0.35:
+            body = (f"**{peak['count']} of {total}** contributions landed in "
+                    f"{name} alone. Flat for months, then it isn't.")
+        else:
+            body = (f"**{total}** contributions across twelve months, peaking at "
+                    f"{peak['count']} in {name}.")
+        md = _replace_block(md, "signal", body)
 
-    month_key, peak = max(monthly.items(), key=lambda kv: kv[1])
-    total = S["total_contributions"] or 1
-    name = dt.date.fromisoformat(month_key + "-01").strftime("%B")
+    if commits:
+        lines = "\n".join(f"{sha}  {msg}" for sha, msg in commits)
+        md = _replace_block(md, "log", f"```\n{lines}\n```")
 
-    if peak / total >= 0.35:
-        line = (f"Most of that activity is recent — {peak} of the {total} "
-                f"contributions landed in {name} alone. The ramp is steep, and "
-                f"the graph shows it.")
-    else:
-        line = (f"{total} contributions across the year, peaking at {peak} in "
-                f"{name}. The graph shows it honestly.")
-
-    head_, rest = md.split(MD_START, 1)
-    _, tail = rest.split(MD_END, 1)
     with open(p, "w", encoding="utf-8", newline="\n") as f:
-        f.write(f"{head_}{MD_START}\n{line}\n{MD_END}{tail}")
-    print("  README.md activity sentence updated")
+        f.write(md)
+    print("  README.md refreshed")
 
 
 def main():
@@ -684,29 +580,19 @@ def main():
     STATS = load()
     os.makedirs(ASSETS, exist_ok=True)
 
-    # --static renders every asset in its settled state, which is how the page
-    # looks once the animations finish. Used for layout review and screenshots.
-    still = "--static" in sys.argv
-    jobs = {"hero": hero, "activity": heatmap, "langs": langbar, "bench": bench}
+    jobs = {"boot": boot, "ticker": ticker, "bars": bars, "bench": bench}
     for name, fn in jobs.items():
         for theme in ("dark", "light"):
-            svg = fn(theme, motion=not still)
-            path = os.path.join(ASSETS, f"{name}-{theme}.svg")
-            with open(path, "w", encoding="utf-8") as f:
-                f.write(svg)
-            print(f"  {name}-{theme}.svg  {len(svg)/1024:.1f} KB")
+            for mode in ("anim", "static"):
+                svg = fn(theme, mode == "anim")
+                path = os.path.join(ASSETS, f"{name}-{theme}-{mode}.svg")
+                with open(path, "w", encoding="utf-8") as f:
+                    f.write(svg)
+                print(f"  {name}-{theme}-{mode}.svg  {len(svg)/1024:.1f} KB")
 
-    # genuinely static banner for prefers-reduced-motion
-    for theme in ("dark", "light"):
-        svg = hero(theme, motion=False)
-        path = os.path.join(ASSETS, f"hero-{theme}-static.svg")
-        with open(path, "w", encoding="utf-8") as f:
-            f.write(svg)
-        print(f"  hero-{theme}-static.svg  {len(svg)/1024:.1f} KB")
-
-    update_readme(STATS)
-    print(f"\nRepos {STATS['public_repos']}  contributions {STATS['total_contributions']}  "
-          f"active days {STATS['active_days']}  best streak {STATS['longest_streak']}d")
+    update_readme(STATS, recent_commits())
+    print(f"\n{STATS['public_repos']} repos · {STATS['total_contributions']} contributions "
+          f"· {STATS['commits']} commits · {STATS['active_days']} active days")
 
 
 if __name__ == "__main__":
