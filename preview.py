@@ -56,7 +56,7 @@ def build(theme):
     # to the variant we actually want to inspect, so both files are deterministic.
     body = re.sub(r"<source\b[^>]*>", "", body)
     if theme == "dark":
-        for name in ("hero", "activity", "langs"):
+        for name in ("hero", "activity", "langs", "bench"):
             body = body.replace(f"assets/{name}-light.svg", f"assets/{name}-dark.svg")
 
     vars_ = {

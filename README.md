@@ -1,10 +1,14 @@
 <p align="center">
 <picture>
+  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: reduce)" srcset="assets/hero-dark-static.svg">
+  <source media="(prefers-color-scheme: light) and (prefers-reduced-motion: reduce)" srcset="assets/hero-light-static.svg">
   <source media="(prefers-color-scheme: dark)" srcset="assets/hero-dark.svg">
   <source media="(prefers-color-scheme: light)" srcset="assets/hero-light.svg">
   <img src="assets/hero-light.svg" width="100%" alt="Kian (@kicode01) — Computer Engineering student. I write compilers, flash firmware, and ship the web apps on top.">
 </picture>
 </p>
+
+<p align="center"><sub>One hand-written SVG. It types itself, follows your OS theme, and holds still if you've asked for reduced motion.<br>No GIF, no screenshot, no third-party service — and nothing to go stale.</sub></p>
 
 > **Building now** — [Black Mamba](https://github.com/kicode01/blackmamba-lang), a language with Python's syntax and C's execution model. &nbsp;·&nbsp; **Open to** software engineering internships.
 
@@ -14,27 +18,52 @@ I'm a Computer Engineering student. I work where abstraction has a measurable co
 
 ## Selected work
 
-### [Black Mamba](https://github.com/kicode01/blackmamba-lang) · a compiler that refuses to choose
+<sub>Click any project to open it.</sub>
+
+<details open>
+<summary><b>01</b> &nbsp;<code>blackmamba-lang</code> &nbsp;—&nbsp; a compiler that refuses to choose</summary>
+
+<br>
 
 Python's syntax, C's execution model, no borrow checker in between. A hand-written lexer and parser, an x86-64 JIT that allocates executable memory directly, zero-dependency PE32+ and ELF64 linkers written in pure Python, and a WebAssembly backend that emits 1.7 KB modules. Automatic tail-call optimization collapses 5,000,000 recursive frames into zero stack frames.
 
-On the repo's own benchmark suite it runs recursive `fib(32)` **26× faster than CPython 3.14** and produces a 5.5 KB standalone `.exe` with no runtime.
+<p align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/bench-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="assets/bench-light.svg">
+  <img src="assets/bench-light.svg" width="100%" alt="Benchmark against CPython 3.14: 26.1x faster on fib(32), 27.5x on collatz_steps, 11.6x on mandelbrot, 12.7x on count_primes.">
+</picture>
+</p>
 
-`Python · x86-64 · LLVM IR · C · WebAssembly` — MIT
+The same source compiles to a 5.5 KB standalone `.exe`, a static Linux ELF, or a 1.7 KB `.wasm` module — no runtime, no interpreter, and no Visual Studio or GCC on the build machine.
 
-### [VoltSense](https://github.com/kicode01/voltsense-iot) · firmware, serverless, and the app in between
+`Python · x86-64 · LLVM IR · C · WebAssembly` — MIT — **[repo](https://github.com/kicode01/blackmamba-lang)**
 
-An ESP32 measures a room's real electrical load and occupancy, publishes telemetry to Firebase, and exposes per-port relay control. Three deliberately separate layers: C++ firmware, Vercel functions that hold the push credentials so the device never has to, and a React 19 PWA that an operator would actually use. Alerts travel device → server → FCM without the device ever holding a messaging key.
+</details>
 
-**[Live demo →](https://voltsense-iot.vercel.app)**
+<details>
+<summary><b>02</b> &nbsp;<code>voltsense-iot</code> &nbsp;—&nbsp; firmware, serverless, and the app in between</summary>
 
-`C++ · ESP32 · Firebase RTDB · FCM · React 19 · Vercel`
+<br>
 
-### [klyph-txt](https://github.com/kicode01/klyph-txt) · text as a syntax tree, not a string
+An ESP32 measures a room's real electrical load and occupancy, publishes telemetry to Firebase, and exposes per-port relay control. Three deliberately separate layers: C++ firmware, Vercel functions that hold the push credentials so the device never has to, and a React 19 PWA that an operator would actually use.
+
+Alerts travel device → server → FCM without the device ever holding a messaging key — it keeps only an HMAC secret in NVS, and the server stores just its SHA-256.
+
+`C++ · ESP32 · Firebase RTDB · FCM · React 19 · Vercel` — **[live demo](https://voltsense-iot.vercel.app)** · **[repo](https://github.com/kicode01/voltsense-iot)**
+
+</details>
+
+<details>
+<summary><b>03</b> &nbsp;<code>klyph-txt</code> &nbsp;—&nbsp; text as a syntax tree, not a string</summary>
+
+<br>
 
 A neurosymbolic writing suite where every rewrite is a deterministic AST transformation rather than a prompt. Nine paraphrase modes built on dependency-tree restructuring, 50,000+ grammar rules via LanguageTool and SymSpell, WordNet 3.1 synonym ranking, and a closed-loop beam search that scores structural candidates before picking one.
 
-`Python · spaCy · AST · LanguageTool · WordNet`
+`Python · spaCy · AST · LanguageTool · WordNet` — **[repo](https://github.com/kicode01/klyph-txt)**
+
+</details>
 
 ---
 
@@ -81,12 +110,12 @@ Coursework lives in the [data structures & algorithms](https://github.com/kicode
 
 ---
 
+## How this page is built
+
+GitHub strips `<script>` and `<style>` out of READMEs, and refuses inline SVG. But it will happily serve an `.svg` file as an `<img>` — and CSS animations still run *inside* that image. So every graphic here is a single self-contained SVG that draws itself when the page loads, with no JavaScript anywhere.
+
+[`generate.py`](./generate.py) pulls the numbers from the GitHub GraphQL API, re-renders every asset, and rewrites the one sentence above that quotes live figures. A weekly Action re-runs it. Nothing on this page is typed by hand, and nothing depends on a service that can go down.
+
 <p align="center">
-  <sub>
-    Portfolio and contact: <a href="https://kicode01.github.io/">kicode01.github.io</a>
-  </sub>
-  <br>
-  <sub>
-    Every number on this page is pulled from the GitHub GraphQL API by <a href="./generate.py"><code>generate.py</code></a> and re-rendered as SVG — no third-party stat cards, nothing to break.
-  </sub>
+  <sub>Portfolio and contact: <a href="https://kicode01.github.io/">kicode01.github.io</a></sub>
 </p>

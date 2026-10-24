@@ -1,6 +1,7 @@
 # Local build output — the SVGs in assets/ are the committed artifacts
 .preview/
 preview-*.html
+_*.html
 
 __pycache__/
 *.pyc
