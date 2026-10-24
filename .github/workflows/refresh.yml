@@ -30,13 +30,22 @@ jobs:
         with:
           python-version: "3.12"
 
-      # gh is preinstalled on GitHub-hosted runners and reads GH_TOKEN directly.
-      # The default token is usually enough for public contribution data; if the
-      # GraphQL query comes back empty, add a classic PAT with `read:user` as a
-      # PROFILE_TOKEN secret and it will be preferred automatically.
+      # The default GITHUB_TOKEN is an installation token scoped to this one
+      # repository. It can read repos fine, but its view of the contribution
+      # calendar silently omits commits to every other repo — which is most of
+      # the graph. Refusing to run beats publishing a quietly wrong number.
+      - name: Require a user-scoped token
+        env:
+          TOKEN: ${{ secrets.PROFILE_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "::error::PROFILE_TOKEN is not set. The default GITHUB_TOKEN only sees this repository, so contribution counts would omit work in every other repo. Add a classic PAT with the 'read:user' scope as the PROFILE_TOKEN secret."
+            exit 1
+          fi
+
       - name: Regenerate SVG assets
         env:
-          GH_TOKEN: ${{ secrets.PROFILE_TOKEN || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PROFILE_TOKEN }}
         run: python generate.py --fetch
 
       - name: Commit if anything changed
