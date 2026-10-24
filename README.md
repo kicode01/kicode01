@@ -96,11 +96,11 @@ The actual log of the repository you're reading. The page regenerates it, so it 
 
 <!-- log:start -->
 ```
+1bfdc66  Reposition toward applied AI, and state the method plainly
 d25616a  Rebuild the profile as an instrument panel with a working console
 16e4a8f  Make the profile animate itself
 0c68510  Require a user-scoped token for the refresh job
 981596d  chore: refresh profile assets
-3c8f2d2  CI: stage README.md and rebase before pushing
 ```
 <!-- log:end -->
 
@@ -125,10 +125,6 @@ d25616a  Rebuild the profile as an instrument panel with a working console
 I'm aiming at **applied AI**: products built on top of models, not models built from scratch. The case for hiring me isn't a list of frameworks — it's that I can work a level below the API. I've written a compiler and firmware, so token budgets, latency, and verification aren't things I've only read about.
 
 **How I work.** The core logic and the architecture are mine. Scaffolding — UI, boilerplate, glue — is largely AI-generated, and I read it before it ships. I use AI the way I use a compiler: much faster than me at the mechanical part, and wrong often enough that you check the output.
-
-**What that looks like in code.** [`klyph-txt`](https://github.com/kicode01/klyph-txt) is a generate-score-select loop. It produces structural candidates, scores each against a rubric, and keeps the lowest-risk one. The model is a single component inside a deterministic pipeline, not the pipeline itself — which is the shape most applied-AI systems end up needing once the demo is over.
-
-**What I'm not claiming.** I haven't trained or fine-tuned a model, and I'm not going to imply otherwise. If the role is model architecture or distributed training, I'm not the hire yet. If it's shipping LLM features that survive contact with real users — retrieval, evaluation, cost, failure modes — that's the work I want, and the systems background is exactly why I'd be useful at it.
 
 ---
 
