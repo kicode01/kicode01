@@ -63,6 +63,7 @@ There's a longer version [below](#02--ai).
 ```
 drwxr-xr-x  blackmamba-lang/            compiler · python · llvm · wasm
 drwxr-xr-x  klyph-txt/                  nlp · llm rewriter · candidate scoring
+drwxr-xr-x  shim-platform/              certificates · qr verification · prisma
 drwxr-xr-x  voltsense-iot/              esp32 firmware · react pwa · firebase
 drwxr-xr-x  aurakeys-storefront/        next.js 15 · three.js · shopify api
 drwxr-xr-x  servyfy-platform/           react 19 · firebase · offline-first
@@ -70,7 +71,7 @@ drwxr-xr-x  oppa-k-ramyeon-hub/         php · html · shipped and live
 drwxr-xr-x  employee-attendance-viewer/ pyside6 · desktop · mit
 ```
 
-Three of them are worth your time. They're below.
+Four of them are worth your time. They're below.
 
 </details>
 
@@ -96,11 +97,11 @@ The actual log of the repository you're reading. The page regenerates it, so it 
 
 <!-- log:start -->
 ```
+2aaa830  Trim the AI section to direction and method
 1bfdc66  Reposition toward applied AI, and state the method plainly
 d25616a  Rebuild the profile as an instrument panel with a working console
 16e4a8f  Make the profile animate itself
 0c68510  Require a user-scoped token for the refresh job
-981596d  chore: refresh profile assets
 ```
 <!-- log:end -->
 
@@ -146,7 +147,15 @@ A text-engineering suite built as a scoring loop rather than a prompt. Nine para
 
 `Python · spaCy · AST · LanguageTool · WordNet · LLM`
 
-<sub>`M-03` &nbsp;·&nbsp; FIRMWARE &nbsp;·&nbsp; SERVERLESS &nbsp;·&nbsp; PWA</sub>
+<sub>`M-03` &nbsp;·&nbsp; FULL-STACK &nbsp;·&nbsp; VERIFIABLE CREDENTIALS &nbsp;·&nbsp; NEXT.JS</sub>
+
+#### [shim-platform](https://github.com/kicode01/shim-platform)
+
+An organizer creates an event, imports the attendee list, designs a certificate template, and issues credentials in bulk. Every certificate carries a unique id and a QR code that resolves to a public verification page — valid or revoked, checkable by anyone. Recipients claim theirs into a wallet, and each issuance and revocation lands in an audit log, because a certificate nobody can verify is just a PDF. Template text is fitted against the real font file rather than estimated, so a long name doesn't overflow the artwork.
+
+`Next.js 16 · React 19 · Prisma · next-auth · jsPDF · QR verification` &nbsp;—&nbsp; **[live ↗](https://shim-hq.vercel.app)**
+
+<sub>`M-04` &nbsp;·&nbsp; FIRMWARE &nbsp;·&nbsp; SERVERLESS &nbsp;·&nbsp; PWA</sub>
 
 #### [VoltSense](https://github.com/kicode01/voltsense-iot)
 
