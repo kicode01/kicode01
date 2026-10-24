@@ -35,7 +35,7 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 ASSETS = os.path.join(ROOT, "assets")
 LOGIN = "kicode01"
 
-TAGLINE = "I write compilers, flash firmware, and ship the web apps on top."
+TAGLINE = "I write compilers and firmware, then put models on top of them."
 
 LANG_COLORS = {
     "Python": "#3572A5", "TypeScript": "#3178c6", "JavaScript": "#f1e05a",
@@ -47,7 +47,7 @@ LANG_COLORS = {
 
 TICKER = [
     "PYTHON", "C", "C++", "X86-64", "LLVM IR", "WEBASSEMBLY", "TYPESCRIPT",
-    "REACT", "NEXT.JS", "VITE", "TAILWIND", "FIREBASE", "ESP32", "OPENSCAD",
+    "REACT", "NEXT.JS", "VITE", "TAILWIND", "LLM", "FIREBASE", "ESP32", "OPENSCAD",
     "SPACY", "SHOPIFY API", "NODE", "GIT",
 ]
 
@@ -324,10 +324,10 @@ def boot(t, motion=True):
     rows = [
         ("init", "kian@" + STATS["login"]),
         ("role", "computer engineering"),
+        ("focus", "applied ai / llm systems"),
         ("target", "x86-64 / wasm / llvm ir"),
         ("indexed", "%d repositories" % STATS["public_repos"]),
-        ("commits", "%d / 12 mo" % STATS["commits"]),
-        ("status", "open to internships"),
+        ("status", "open to applied ai roles"),
     ]
     CW = 7.9  # mono advance at 13px, close enough to align the dot leaders
     # len(key) + 1 + len(dots) + 1 is constant, so every value lands in the same
