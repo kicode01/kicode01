@@ -1,0 +1,43 @@
+name: "⚡ Transmit Telemetry Handshake"
+description: "Trigger a live GitHub Actions run to verify and render your handshake into the profile telemetry radar in ~15s."
+title: "[TELEMETRY PING] from @<your-username>"
+labels: ["telemetry-ping"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### ⚡ Interactive Telemetry Ping
+        Submitting this issue will execute an event-driven GitHub Action.
+        Your signal will be validated, appended to `telemetry.json`, rendered into the vector SVG radar, and this issue will be automatically closed in **~15 seconds**.
+
+  - type: input
+    id: organization
+    attributes:
+      label: Sender / Organization
+      description: "Your company, startup, university, or GitHub team."
+      placeholder: "e.g. Anthropic, DeepMind, Vercel, Autonomous AI Labs"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: focus
+    attributes:
+      label: Target Role / Area of Inquiry
+      description: "What area are you most interested in connecting with Kian on?"
+      options:
+        - "Applied AI Systems & LLM Runtimes"
+        - "Compilers, JIT & Low-Level Systems"
+        - "Embedded Firmware & IoT (ESP32)"
+        - "High-Performance Full-Stack (Next.js/React)"
+        - "General Engineering Connection"
+    validations:
+      required: true
+
+  - type: textarea
+    id: note
+    attributes:
+      label: Transmission Note
+      description: "A quick comment, benchmark feedback, or invitation to chat."
+      placeholder: "e.g. Impressive compiler architecture and latency benchmarks! Reaching out regarding an Applied AI role."
+    validations:
+      required: false

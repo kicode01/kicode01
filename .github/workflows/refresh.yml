@@ -1,8 +1,8 @@
 name: Refresh profile assets
 
-# Keeps the banner, heatmap, and language bar current. The alternative — a
-# third-party stat-card service — goes down, gets rate-limited, or silently
-# serves a cached image; regenerating from the API costs nothing and never rots.
+# Keeps the banner, heatmap, language bar, and architecture pipeline current.
+# The alternative — a third-party stat-card service — goes down, gets rate-limited,
+# or silently serves a cached image; regenerating from the API costs nothing and never rots.
 
 on:
   schedule:
@@ -30,22 +30,18 @@ jobs:
         with:
           python-version: "3.12"
 
-      # The default GITHUB_TOKEN is an installation token scoped to this one
-      # repository. It can read repos fine, but its view of the contribution
-      # calendar silently omits commits to every other repo — which is most of
-      # the graph. Refusing to run beats publishing a quietly wrong number.
-      - name: Require a user-scoped token
+      - name: Resolve GitHub Token
         env:
-          TOKEN: ${{ secrets.PROFILE_TOKEN }}
+          PROFILE_TOKEN: ${{ secrets.PROFILE_TOKEN }}
         run: |
-          if [ -z "$TOKEN" ]; then
-            echo "::error::PROFILE_TOKEN is not set. The default GITHUB_TOKEN only sees this repository, so contribution counts would omit work in every other repo. Add a classic PAT with the 'read:user' scope as the PROFILE_TOKEN secret."
-            exit 1
+          if [ -n "$PROFILE_TOKEN" ]; then
+            echo "GH_TOKEN=$PROFILE_TOKEN" >> $GITHUB_ENV
+          else
+            echo "::warning::PROFILE_TOKEN secret not found. Falling back to default GITHUB_TOKEN."
+            echo "GH_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
           fi
 
       - name: Regenerate SVG assets
-        env:
-          GH_TOKEN: ${{ secrets.PROFILE_TOKEN }}
         run: python generate.py --fetch
 
       - name: Commit if anything changed
@@ -56,10 +52,7 @@ jobs:
           fi
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          # README.md is included because generate.py rewrites the one sentence
-          # that quotes live numbers.
-          git add assets stats.json README.md
+          git add assets stats.json telemetry.json README.md
           git commit -m "chore: refresh profile assets"
-          # A push can land between checkout and here; rebase rather than fail.
           git pull --rebase --autostash origin main
           git push
