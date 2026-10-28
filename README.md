@@ -135,11 +135,11 @@ The actual commit log of this profile repository.
 
 <!-- log:start -->
 ```
+797f2f8  feat: event-driven IssueOps telemetry state machine, compiler architecture pipeline HUD, and cross-repo pulse
 2421bd2  Refresh the overview for the two newly published repos
 3808006  Feature shim-platform as M-03
 2aaa830  Trim the AI section to direction and method
 1bfdc66  Reposition toward applied AI, and state the method plainly
-d25616a  Rebuild the profile as an instrument panel with a working console
 ```
 <!-- log:end -->
 
@@ -297,7 +297,7 @@ An organizer creates an event, imports the attendee list, designs a certificate 
 </p>
 
 <!-- signal:start -->
-**143 of 236** contributions landed in October alone. Flat for months, then it isn't.
+**289 of 382** contributions landed in October alone. Flat for months, then it isn't.
 <!-- signal:end -->
 
 I'd rather show the shape of the year than a streak counter.
