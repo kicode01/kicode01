@@ -167,11 +167,11 @@ The actual commit log of this profile repository.
 
 <!-- log:start -->
 ```
+24ac1f3  chore: merge remote refresh bot stats into main
+80ece29  feat: hardware oscilloscope logic analyzer waveforms, executive recruiter triage matrix, and vector pipeline animation
 8ee37b5  chore: refresh profile assets
 797f2f8  feat: event-driven IssueOps telemetry state machine, compiler architecture pipeline HUD, and cross-repo pulse
 2421bd2  Refresh the overview for the two newly published repos
-3808006  Feature shim-platform as M-03
-2aaa830  Trim the AI section to direction and method
 ```
 <!-- log:end -->
 
@@ -366,7 +366,7 @@ An organizer creates an event, imports the attendee list, designs a certificate 
 </p>
 
 <!-- signal:start -->
-**289 of 382** contributions landed in October alone. Flat for months, then it isn't.
+**290 of 383** contributions landed in October alone. Flat for months, then it isn't.
 <!-- signal:end -->
 
 I'd rather show the shape of the year than a streak counter.
