@@ -366,7 +366,7 @@ An organizer creates an event, imports the attendee list, designs a certificate 
 </p>
 
 <!-- signal:start -->
-**143 of 236** contributions landed in October alone. Flat for months, then it isn't.
+**289 of 382** contributions landed in October alone. Flat for months, then it isn't.
 <!-- signal:end -->
 
 I'd rather show the shape of the year than a streak counter.
