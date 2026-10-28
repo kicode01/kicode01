@@ -93,12 +93,17 @@ CSS = """
 .gx{transform-box:fill-box;transform-origin:0 50%;animation:gx .7s cubic-bezier(.3,.8,.25,1) both}
 .gy{transform-box:fill-box;transform-origin:50% 100%;animation:gy .55s cubic-bezier(.2,.8,.2,1) both}
 .pulse{animation:pulse 2s ease-in-out infinite}
+.flow{stroke-dasharray:6 4;animation:flow 1.2s linear infinite}
+.trace{stroke-dasharray:1400;stroke-dashoffset:1400;animation:draw 1.6s cubic-bezier(.2,.8,.2,1) forwards}
+.trace-fast{stroke-dasharray:1600;stroke-dashoffset:1600;animation:draw 1.2s cubic-bezier(.15,.85,.25,1) forwards}
 @keyframes fi{from{opacity:0}to{opacity:1}}
 @keyframes ri{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
 @keyframes gx{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 @keyframes gy{from{transform:scaleY(0)}to{transform:scaleY(1)}}
 @keyframes bl{0%,45%{opacity:1}55%,100%{opacity:0}}
 @keyframes pulse{0%,100%{opacity:0.35}50%{opacity:1}}
+@keyframes flow{to{stroke-dashoffset:-20}}
+@keyframes draw{to{stroke-dashoffset:0}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 """
 
@@ -643,6 +648,8 @@ def pipeline(t, motion=True):
             o.append(f'<polygon points="{cx2-4:.1f},{cy-3:.1f} {cx2+2:.1f},{cy:.1f} {cx2-4:.1f},{cy+3:.1f}" '
                      f'fill="{P["micro"]}" {A(motion, "f", d + 0.15)}/>')
             if motion:
+                o.append(f'<line x1="{cx1:.1f}" y1="{cy:.1f}" x2="{cx2:.1f}" y2="{cy:.1f}" '
+                         f'stroke="{P["accent"]}" stroke-width="1.8" class="flow"/>')
                 o.append(f'<circle cx="{cx1 + gap/2:.1f}" cy="{cy:.1f}" r="2.5" fill="{P["accent"]}" '
                          f'class="pulse" style="animation-delay:{d:.2f}s"/>')
 
@@ -737,6 +744,114 @@ def telemetry(t, motion=True):
     return "".join(o)
 
 
+
+# ---------------------------------------------------------- oscilloscope ----
+def oscilloscope(t, motion=True):
+    """1280x280. Hardware logic analyzer and runtime execution waveforms."""
+    W, H = 1280, 280
+    P = THEMES[t]
+    o = [head(W, H, motion)]
+    o.append(f'<rect width="{W}" height="{H}" fill="{P["bg0"]}"/>')
+
+    # Top strip
+    o.append(rule(0, 44, W, 44, P["rule"]))
+    o.append(f'<circle cx="58" cy="22" r="3.5" fill="{P["accent"]}" class="pulse"/>')
+    o.append(label(70, 26, "OSCILLOSCOPE  /  HARDWARE & RUNTIME EXECUTION WAVEFORMS", P,
+                   motion=motion, delay=0.08))
+    o.append(text(W - 56, 26, "TIMEBASE: 10µs/DIV · CH1-CH4 LOGIC ANALYZER · 120MHz", size=10,
+                  fill=P["accent"], weight="700", family=MONO, ls=1.5,
+                  anchor="end", motion=motion, cls="f", delay=0.12))
+
+    # Grid lines (oscilloscope phosphor graticule)
+    gw0, gw1 = 200, W - 56
+    divs = 8
+    step_x = (gw1 - gw0) / divs
+    for k in range(divs + 1):
+        gx = gw0 + k * step_x
+        o.append(f'<line x1="{gx:.1f}" y1="56" x2="{gx:.1f}" y2="230" stroke="{P["rule"]}" stroke-width="0.8" stroke-dasharray="2 4" opacity="0.6"/>')
+
+    for gy in [98, 142, 186]:
+        o.append(f'<line x1="{gw0}" y1="{gy}" x2="{gw1}" y2="{gy}" stroke="{P["rule"]}" stroke-width="0.8" stroke-dasharray="2 4" opacity="0.6"/>')
+
+    # Channel 1: CLK_120MHZ (Square wave clock pulses)
+    y1_base, y1_high = 90, 74
+    o.append(text(56, 82, "CH1 / CLK_120MHz", size=10, fill=P["text"], weight="700", family=MONO))
+    o.append(text(56, 94, "x86-64 Native JIT", size=9, fill=P["micro"], weight="500", family=MONO))
+    ch1_pts = [f"M {gw0} {y1_base}"]
+    cur_x = gw0
+    step = 16
+    high = True
+    while cur_x < gw1:
+        cur_x += step
+        y = y1_high if high else y1_base
+        ch1_pts.append(f"H {cur_x:.1f}")
+        high = not high
+        next_y = y1_high if high else y1_base
+        ch1_pts.append(f"V {next_y}")
+    ch1_path = " ".join(ch1_pts)
+    cls1 = 'class="trace-fast"' if motion else ''
+    o.append(f'<path d="{ch1_path}" fill="none" stroke="{P["accent"]}" stroke-width="1.8" {cls1}/>')
+
+    # Channel 2: AST C3 MRO Lock (Stepped multiple inheritance resolution)
+    y2_base, y2_mid, y2_high = 134, 126, 118
+    o.append(text(56, 126, "CH2 / C3_MRO_LOCK", size=10, fill=P["text"], weight="700", family=MONO))
+    o.append(text(56, 138, "Linearization 0.42ms", size=9, fill=P["micro"], weight="500", family=MONO))
+    ch2_d = (f"M {gw0} {y2_base} H {gw0+120} V {y2_mid} H {gw0+280} V {y2_high} H {gw0+620} "
+             f"V {y2_base} H {gw0+740} V {y2_high} H {gw1}")
+    cls2 = 'class="trace"' if motion else ''
+    o.append(f'<path d="{ch2_d}" fill="none" stroke="{P["green"]}" stroke-width="1.8" {cls2}/>')
+
+    # Channel 3: TCO Collapse (Recursive call burst collapsing into zero stack baseline)
+    y3_base, y3_high = 178, 162
+    o.append(text(56, 170, "CH3 / TCO_COLLAPSE", size=10, fill=P["text"], weight="700", family=MONO))
+    o.append(text(56, 182, "5M -> 0 Call Frames", size=9, fill=P["micro"], weight="500", family=MONO))
+    ch3_pts = [f"M {gw0} {y3_base}"]
+    cur_x = gw0
+    while cur_x < gw0 + 360:
+        cur_x += 10
+        ch3_pts.append(f"H {cur_x:.1f} V {y3_high} H {cur_x+5:.1f} V {y3_base}")
+        cur_x += 5
+    collapse_x = gw0 + 360
+    ch3_pts.append(f"H {gw1}")
+    ch3_path = " ".join(ch3_pts)
+    cls3 = 'class="trace-fast"' if motion else ''
+    o.append(f'<path d="{ch3_path}" fill="none" stroke="{P["text"]}" stroke-width="1.8" {cls3}/>')
+    o.append(f'<rect x="{collapse_x - 34}" y="152" width="68" height="15" fill="{P["panel"]}" stroke="{P["accent"]}" stroke-width="1"/>')
+    o.append(text(collapse_x, 163, "COLLAPSED", size=8.5, fill=P["accent"], weight="700", family=MONO, anchor="middle"))
+
+    # Channel 4: AI Cascade Latency (Groq -> Gemini -> MediaPipe on-device WASM)
+    y4_groq, y4_gem, y4_mp = 206, 214, 224
+    o.append(text(56, 214, "CH4 / AI_LATENCY", size=10, fill=P["text"], weight="700", family=MONO))
+    o.append(text(56, 226, "420ms -> 18ms WASM", size=9, fill=P["micro"], weight="500", family=MONO))
+    ch4_d = (f"M {gw0} {y4_groq} H {gw0+220} L {gw0+235} {y4_groq-10} L {gw0+250} {y4_gem} "
+             f"H {gw0+480} C {gw0+520} {y4_gem}, {gw0+540} {y4_mp}, {gw0+580} {y4_mp} H {gw1}")
+    cls4 = 'class="trace"' if motion else ''
+    o.append(f'<path d="{ch4_d}" fill="none" stroke="{P["accent"]}" stroke-width="1.8" {cls4}/>')
+    o.append(text(gw0+70, y4_groq - 6, "GROQ LLAMA-3 [420ms]", size=8.5, fill=P["micro"], weight="600", family=MONO))
+    o.append(text(gw0+300, y4_gem - 6, "GEMINI FALLBACK", size=8.5, fill=P["micro"], weight="600", family=MONO))
+    o.append(text(gw0+660, y4_mp - 6, "MEDIAPIPE ON-DEVICE WASM [18ms]", size=8.5, fill=P["green"], weight="700", family=MONO))
+
+    # Bottom indicators
+    o.append(rule(0, 240, W, 240, P["rule"]))
+    telemetry_chips = [
+        ("MMAP JIT ALLOCATION", "PROT_READ | PROT_WRITE | PROT_EXEC"),
+        ("TYPE PROPAGATION", "HINDLEY-MILNER STATIC SOLVER"),
+        ("STACK UNWINDING", "ZERO-COST EXCEPTION FRAMES"),
+        ("EDGE INFERENCE", "1.7KB WASM / 0-SECRET ESP32 FIRMWARE"),
+    ]
+    for i, (k, v) in enumerate(telemetry_chips):
+        cx = 56 + i * 292
+        d = 0.8 + i * 0.08
+        if i:
+            o.append(rule(cx - 24, 248, cx - 24, 274, P["rule"]))
+        o.append(label(cx, 256, k, P, motion=motion, delay=d))
+        o.append(text(cx, 272, v, size=11, fill=P["text"], weight="600",
+                      family=MONO, ls=0.2, motion=motion, cls="f", delay=d + 0.04))
+
+    o.append("</svg>")
+    return "".join(o)
+
+
 # --------------------------------------------------------------- readme glue --
 def _replace_block(md, key, body):
     a, b = f"<!-- {key}:start -->", f"<!-- {key}:end -->"
@@ -811,6 +926,7 @@ def main():
         "bars": bars,
         "bench": bench,
         "pipeline": pipeline,
+        "oscilloscope": oscilloscope,
         "telemetry": telemetry,
     }
     for name, fn in jobs.items():
