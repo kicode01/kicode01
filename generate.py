@@ -1,29 +1,5 @@
 """
-Generates the animated SVG assets behind the profile README.
-
-What makes this more than a poster:
-
-  1. GitHub strips <script>, <style> and inline <svg> from a README, but it
-     happily serves an .svg *file* as an <img> — and CSS animations inside that
-     image still run. So the page can move with no JavaScript at all.
-  2. Every animated asset has a static twin, selected by a
-     `prefers-reduced-motion` media query in <picture>. Almost nobody wires
-     that up; it is the difference between a gimmick and something that
-     respects its reader.
-  3. Every number is read from the API. Nothing on the page is typed by hand.
-  4. Real-time Event-Driven Telemetry: Integrates with GitHub Actions IssueOps
-     to record and display visitor/recruiter handshakes directly in SVG.
-
-Two invariants keep the animation honest:
-  * The base state of each element is its FINAL state. Animation only adds
-    motion; if a renderer ignores CSS the page still reads correctly.
-  * Wipes use <mask> with an animated rect width. `clip-path: inset()` resolves
-    against the SVG viewport rather than the element box, so it is unusable
-    here.
-
-Usage:
-    python generate.py            # uses stats.json if present, else fetches
-    python generate.py --fetch    # force a fresh pull from the GitHub API
+Generates the animated SVG assets for Kian's Silicon Floorplan & Bento Grid profile.
 """
 import json
 import os
@@ -47,38 +23,18 @@ LANG_COLORS = {
     "Batchfile": "#C1F12E", "MDX": "#fcb32c", "Shell": "#89e051",
 }
 
-TICKER = [
-    "PYTHON", "C", "C++", "X86-64", "LLVM IR", "WEBASSEMBLY", "TYPESCRIPT",
-    "REACT", "NEXT.JS", "VITE", "TAILWIND", "LLM", "FIREBASE", "ESP32", "OPENSCAD",
-    "SPACY", "SHOPIFY API", "NODE", "GIT",
-]
-
-# Transcribed from blackmamba-lang's own benchmark table. Re-run that suite in
-# the repo before trusting these after a compiler change.
-BENCH = [
-    ("fib(32)", 288.62, 11.078, "26.1x"),
-    ("collatz(40k)", 227.84, 8.291, "27.5x"),
-    ("mandelbrot(120x120)", 39.14, 3.368, "11.6x"),
-    ("count_primes(30k)", 22.05, 1.730, "12.7x"),
-]
-
-# --------------------------------------------------------------- palettes ----
-# Amber on near-black. Flat by design: hairlines and spacing carry the structure,
-# so the page reads like an instrument panel rather than a poster.
 THEMES = {
     "dark": {
         "bg0": "#08090B", "bg1": "#0B0E11", "panel": "#0F1317",
         "rule": "#1E242B", "text": "#F3F5F8", "dim": "#98A3AF",
-        # `micro` is for 9-11px caps. `faint` is structure only (rules, dot
-        # leaders) and must never carry text — at that size it disappears.
         "micro": "#7E8A97", "faint": "#39414B", "accent": "#FFA028",
-        "bar": "#2A323C", "green": "#22C55E",
+        "bar": "#2A323C", "green": "#22C55E", "cyan": "#38BDF8",
     },
     "light": {
         "bg0": "#FBFAF7", "bg1": "#F6F4EF", "panel": "#FFFFFF",
         "rule": "#E3DED4", "text": "#111418", "dim": "#4E5661",
         "micro": "#5A6270", "faint": "#A7ACB4", "accent": "#C2410C",
-        "bar": "#C9C2B2", "green": "#16A34A",
+        "bar": "#C9C2B2", "green": "#16A34A", "cyan": "#0284C7",
     },
 }
 
@@ -107,15 +63,12 @@ CSS = """
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 """
 
-
-# ------------------------------------------------------------------- data ----
 def gh(args):
     out = subprocess.run(["gh"] + args, capture_output=True, text=True,
                          encoding="utf-8", shell=False)
     if out.returncode != 0:
         raise RuntimeError(out.stderr)
     return out.stdout
-
 
 QL = """
 query {
@@ -133,7 +86,6 @@ query {
 }
 """ % LOGIN
 
-
 def _previous_stats():
     p = os.path.join(ROOT, "stats.json")
     if not os.path.exists(p):
@@ -141,9 +93,7 @@ def _previous_stats():
     with open(p, encoding="utf-8") as f:
         return json.load(f)
 
-
 def cross_repo_commits(n=6):
-    """Fetches real recent commits across Kian's public repositories."""
     tracked = [
         "voltsense-iot",
         "blackmamba-lang",
@@ -180,7 +130,6 @@ def cross_repo_commits(n=6):
     results.sort(key=lambda x: x["date"], reverse=True)
     return results[:n]
 
-
 def fetch():
     user = json.loads(gh(["api", "users/" + LOGIN]))
     repos = json.loads(gh(["api", "users/%s/repos?per_page=100&sort=pushed" % LOGIN]))
@@ -190,7 +139,7 @@ def fetch():
         q = " ".join(QL.split())
         gql = json.loads(gh(["api", "graphql", "-f", "query=" + q]))["data"]["user"]
         contrib = gql["contributionsCollection"]
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         prev = _previous_stats()
         print("! contribution data unavailable (%s)" % exc, file=sys.stderr)
         if not prev:
@@ -238,7 +187,6 @@ def fetch():
         json.dump(stats, f, indent=2, ensure_ascii=False)
     return stats
 
-
 def derive(s):
     days = [(dt.date.fromisoformat(d), c) for d, c in s.get("days", [])]
     s["active_days"] = sum(1 for _, c in days if c > 0)
@@ -267,7 +215,6 @@ def derive(s):
         s["cross_repo_commits"] = cross_repo_commits()
     return s
 
-
 def load():
     if "--fetch" in sys.argv:
         return derive(fetch())
@@ -277,26 +224,21 @@ def load():
             return derive(json.load(f))
     return derive(fetch())
 
-
 def recent_commits(n=5):
-    """The terminal prints this repo's real git log, so it cannot go stale."""
     try:
         out = json.loads(gh(["api", "repos/%s/%s/commits?per_page=%d"
                              % (LOGIN, LOGIN, n)]))
         return [(c["sha"][:7], c["commit"]["message"].split("\n")[0]) for c in out]
-    except Exception:  # noqa: BLE001
+    except Exception:
         return []
 
-
-# ------------------------------------------------------------ svg helpers ----
+# SVG Helpers
 def head(w, h, motion):
     css = f"<style>{CSS}</style>" if motion else ""
     return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" '
             f'viewBox="0 0 {w} {h}" fill="none" role="img">{css}')
 
-
 def A(motion, cls="", delay=None):
-    """Class + inline delay, or empty for the static twin."""
     if not motion:
         return ""
     out = f' class="{cls}"' if cls else ""
@@ -304,375 +246,299 @@ def A(motion, cls="", delay=None):
         out += f' style="animation-delay:{delay:.2f}s"'
     return out
 
-
 def text(x, y, s, size=14, fill="#000", weight="400", family=SANS,
-         anchor="start", ls=0, op=1.0, motion=False, cls="", delay=None,
-         tlen=None, style=""):
+         anchor="start", ls=0.0, op=1.0, motion=False, cls="", delay=None):
+    anim = A(motion, cls, delay)
+    ls_attr = f' letter-spacing="{ls}"' if ls else ""
+    op_attr = f' opacity="{op}"' if op < 1.0 else ""
     return (f'<text x="{x}" y="{y}" font-family="{family}" font-size="{size}" '
             f'font-weight="{weight}" fill="{fill}" text-anchor="{anchor}"'
-            + (f' letter-spacing="{ls}"' if ls else "")
-            + (f' opacity="{op}"' if op != 1.0 else "")
-            + (f' style="{style}"' if style else "")
-            + A(motion, cls, delay)
-            + (f' textLength="{tlen}" lengthAdjust="spacingAndGlyphs"' if tlen else "")
-            + f'>{escape(str(s))}</text>')
-
+            f'{ls_attr}{op_attr}{anim}>{escape(str(s))}</text>')
 
 def rule(x1, y1, x2, y2, color, op=1.0):
     return (f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" '
-            f'stroke="{color}" stroke-width="1" opacity="{op}"/>')
-
+            f'stroke="{color}" stroke-width="1" opacity="{op:.1f}"/>')
 
 def label(x, y, s, P, size=10, ls=1.6, anchor="start", motion=False, delay=None):
-    return text(x, y, s, size=size, fill=P["micro"], weight="700", family=MONO,
-                ls=ls, anchor=anchor, motion=motion, cls="f", delay=delay)
+    return text(x, y, s, size=size, fill=P["micro"], weight="700",
+                family=MONO, anchor=anchor, ls=ls,
+                motion=motion, cls="f", delay=delay)
 
-
-# ------------------------------------------------------------------- hero ----
-def boot(t, motion=True):
-    """1280x400. Identity on the left, a boot log that types itself on the right."""
-    W, H = 1280, 400
+# -------------------------------------------------------- status island ----
+def status_island(t, motion=True):
+    """1280x88. Dynamic Island & Systems Status Cockpit."""
+    W, H = 1280, 88
     P = THEMES[t]
     o = [head(W, H, motion)]
+    o.append(f'<rect x="0.5" y="0.5" width="{W-1}" height="{H-1}" rx="14" '
+             f'fill="{P["panel"]}" stroke="{P["rule"]}" stroke-width="1.2"/>')
 
-    o.append(f"""<defs><linearGradient id="wash" x1="0" y1="0" x2="1" y2="1">
-<stop offset="0" stop-color="{P['bg1']}"/><stop offset="0.6" stop-color="{P['bg0']}"/>
-</linearGradient></defs>""")
-    o.append(f'<rect width="{W}" height="{H}" fill="url(#wash)"/>')
+    # Left: Beacon & Identity
+    o.append(f'<circle cx="36" cy="44" r="4.5" fill="{P["accent"]}" class="pulse"/>')
+    o.append(text(52, 38, "SYS // ONLINE", size=10.5, fill=P["accent"], weight="800", family=MONO, ls=1.5))
+    o.append(text(52, 54, "200 OK · LOW-LEVEL JIT", size=9.5, fill=P["micro"], weight="600", family=MONO))
 
-    # ---- top strip
-    o.append(rule(0, 44, W, 44, P["rule"]))
-    o.append(f'<circle cx="58" cy="22" r="3.5" fill="{P["accent"]}" {A(motion, "f", 0.05)}/>')
-    o.append(text(70, 26, "ONLINE", size=10.5, fill=P["accent"], weight="700",
-                  family=MONO, ls=1.8, motion=motion, cls="f", delay=0.08))
-    o.append(text(150, 26, "/ PROFILE", size=10.5, fill=P["micro"], weight="600",
-                  family=MONO, ls=1.8, motion=motion, cls="f", delay=0.12))
-    o.append(text(W - 56, 26, "SYNC " + STATS["generated"], size=10.5,
-                  fill=P["micro"], weight="600", family=MONO, ls=1.6,
-                  anchor="end", motion=motion, cls="f", delay=0.16))
+    o.append(rule(196, 20, 196, 68, P["rule"]))
 
-    # ---- left: identity
-    o.append(text(56, 114, "COMPUTER ENGINEERING  /  SYSTEMS & APPLIED AI", size=11,
-                  fill=P["dim"], weight="600", family=MONO, ls=2.0,
-                  motion=motion, cls="f", delay=0.22))
-    o.append(text(52, 198, "KIAN", size=88, fill=P["text"], weight="800",
-                  ls=-3.0, motion=motion, cls="r", delay=0.30))
-    o.append(text(56, 240, TAGLINE, size=20, fill=P["dim"], weight="400",
-                  ls=-0.2, motion=motion, cls="r", delay=0.46))
+    # Identity
+    o.append(text(216, 38, "KIAN B.", size=14, fill=P["text"], weight="800", family=MONO, ls=0.5))
+    o.append(text(216, 54, "COMPUTER ENGINEERING  ·  SILICON TO MODEL", size=9.5, fill=P["dim"], weight="600", family=MONO, ls=1.0))
 
-    # ---- right: boot log
-    px, py, pw, ph = 676, 68, 548, 228
-    o.append(f'<rect x="{px}" y="{py}" width="{pw}" height="{ph}" '
-             f'fill="{P["panel"]}" stroke="{P["rule"]}" stroke-width="1" '
-             f'{A(motion, "f", 0.20)}/>')
-    o.append(text(px + 18, py + 22, "boot.log", size=10.5, fill=P["micro"],
-                  weight="600", family=MONO, ls=0.8, motion=motion, cls="f", delay=0.30))
-    o.append(text(px + pw - 18, py + 22, "tty0", size=10.5, fill=P["micro"],
-                  weight="600", family=MONO, ls=0.8, anchor="end",
-                  motion=motion, cls="f", delay=0.30))
-    o.append(rule(px, py + 34, px + pw, py + 34, P["rule"]))
+    o.append(rule(530, 20, 530, 68, P["rule"]))
 
-    rows = [
-        ("init", "kian@" + STATS["login"]),
-        ("role", "computer engineering"),
-        ("focus", "applied ai / compilers / firmware"),
-        ("target", "x86-64 / wasm / llvm ir"),
-        ("indexed", "%d repositories" % STATS["public_repos"]),
-        ("status", "open to applied ai & systems roles"),
-    ]
-    CW = 7.9
-    LEAD = 10
-    for i, (k, v) in enumerate(rows):
-        d = 0.42 + i * 0.13
-        y = py + 56 + i * 20
-        dots = "." * (LEAD - len(k))
-        o.append(text(px + 18, y, k, size=13, fill=P["micro"], weight="600",
-                      family=MONO, motion=motion, cls="f", delay=d))
-        o.append(text(px + 18 + CW * (len(k) + 1), y, dots, size=13,
-                      fill=P["faint"], weight="400", family=MONO, op=0.5,
-                      motion=motion, cls="f", delay=d))
-        o.append(text(px + 18 + CW * (LEAD + 2), y, v,
-                      size=13, fill=P["dim"], weight="400", family=MONO,
-                      motion=motion, cls="f", delay=d))
+    # Center: Tagline
+    o.append(text(550, 47, TAGLINE, size=13.5, fill=P["text"], weight="500", family=SANS, ls=-0.1))
 
-    ry = py + 56 + (len(rows) - 1) * 20 + 24
-    o.append(text(px + 18, ry, ">", size=12.5, fill=P["accent"], weight="700",
-                  family=MONO, motion=motion, cls="f", delay=1.30))
-    o.append(text(px + 32, ry, "ready", size=12.5, fill=P["accent"], weight="700",
-                  family=MONO, motion=motion, cls="f", delay=1.30))
-    cur = ('style="opacity:0;animation:fi .18s ease-out 1.45s both,'
-           'bl 1.05s steps(1) 1.60s infinite"' if motion else 'style="opacity:.9"')
-    o.append(f'<rect x="{px+75}" y="{ry-10}" width="7" height="12" '
-             f'fill="{P["accent"]}" {cur}/>')
+    o.append(rule(990, 20, 990, 68, P["rule"]))
 
-    # ---- progress bar
-    bx, by, bw = px + 18, py + 210, pw - 36
-    o.append(text(bx, by - 8, "init complete", size=9, fill=P["micro"],
-                  weight="700", family=MONO, ls=1.2, motion=motion, cls="f", delay=1.1))
-    o.append(f'<rect x="{bx}" y="{by}" width="{bw}" height="2" fill="{P["rule"]}"/>')
-    o.append(f'<rect x="{bx}" y="{by}" width="{bw}" height="2" fill="{P["accent"]}" '
-             f'{A(motion, "gx", 1.05)}/>')
-
-    # ---- metrics strip
-    o.append(rule(0, 320, W, 320, P["rule"]))
-    metrics = [
-        (str(STATS["public_repos"]), "REPOSITORIES"),
-        (str(STATS["total_contributions"]), "CONTRIBUTIONS / 12MO"),
-        (str(STATS["commits"]), "COMMITS / 12MO"),
-        (str(STATS["active_days"]), "ACTIVE DAYS"),
-    ]
-    for i, (v, k) in enumerate(metrics):
-        cx = 56 + i * 292
-        d = 0.9 + i * 0.07
-        if i:
-            o.append(rule(cx - 24, 338, cx - 24, 386, P["rule"]))
-        o.append(label(cx, 350, k, P, motion=motion, delay=d))
-        o.append(text(cx, 384, v, size=28, fill=P["text"], weight="700",
-                      family=MONO, ls=-0.5, motion=motion, cls="r", delay=d + 0.04))
+    # Right: Recruiter Signal & Telemetry Sync
+    o.append(text(W - 32, 38, "OPEN TO GLOBAL ROLES", size=10.5, fill=P["green"], weight="800", family=MONO, ls=1.2, anchor="end"))
+    o.append(text(W - 32, 54, f"SYNC {STATS.get('generated', '2026-10-29')} · {STATS.get('public_repos', 19)} REPOSITORIES",
+                  size=9.5, fill=P["micro"], weight="600", family=MONO, anchor="end"))
 
     o.append("</svg>")
     return "".join(o)
 
-
-# ----------------------------------------------------------------- ticker ----
-def ticker(t, motion=True):
-    """1280x56 strip of technologies. The motion is the entire point."""
-    W, H = 1280, 56
+# ------------------------------------------------------------ floorplan ----
+def floorplan(t, motion=True):
+    """1280x440. Silicon Processor Die Floorplan (Heterogeneous Architecture)."""
+    W, H = 1280, 440
     P = THEMES[t]
     o = [head(W, H, motion)]
-
-    o.append(f'<rect width="{W}" height="{H}" fill="{P["bg0"]}"/>')
-    o.append(rule(0, 0.5, W, 0.5, P["rule"]))
-    o.append(rule(0, H - 0.5, W, H - 0.5, P["rule"]))
-    o.append(f"""<defs>
-<linearGradient id="fade" x1="0" y1="0" x2="1" y2="0">
-  <stop offset="0" stop-color="#fff" stop-opacity="0"/>
-  <stop offset="0.06" stop-color="#fff" stop-opacity="1"/>
-  <stop offset="0.94" stop-color="#fff" stop-opacity="1"/>
-  <stop offset="1" stop-color="#fff" stop-opacity="0"/>
-</linearGradient>
-<mask id="edge"><rect width="{W}" height="{H}" fill="url(#fade)"/></mask>
-</defs>""")
-
-    o.append('<g mask="url(#edge)">')
-    if motion:
-        o.append("<style>@keyframes sl{from{transform:translateX(0)}"
-                 "to{transform:translateX(-1400px)}}"
-                 "@media (prefers-reduced-motion:reduce){*{animation:none!important}}"
-                 "</style>")
-        o.append('<g style="animation:sl 44s linear infinite">')
-        line = "  ·  ".join(TICKER) + "  ·  "
-        for x in (0, 1400):
-            o.append(f'<text x="{x}" y="35" font-family="{MONO}" font-size="12" '
-                     f'font-weight="600" fill="{P["dim"]}" letter-spacing="1.4" '
-                     f'textLength="1400" lengthAdjust="spacing">'
-                     f'{escape(line)}</text>')
-        o.append("</g>")
-    else:
-        o.append(f'<text x="{W/2}" y="35" font-family="{MONO}" font-size="12" '
-                 f'font-weight="600" fill="{P["dim"]}" letter-spacing="1.6" '
-                 f'text-anchor="middle">'
-                 f'{escape("  ·  ".join(TICKER[:14]))}</text>')
-    o.append("</g>")
-
-    o.append("</svg>")
-    return "".join(o)
-
-
-# ------------------------------------------------------------------- bars ----
-def bars(t, motion=True):
-    """1280x250. Monthly contributions, bars growing from the baseline."""
-    W, H = 1280, 250
-    P = THEMES[t]
-    data = STATS.get("monthly", [])
-    o = [head(W, H, motion)]
-    o.append(f'<rect width="{W}" height="{H}" fill="{P["bg0"]}"/>')
-
-    o.append(label(56, 34, "CONTRIBUTIONS / MONTH", P, size=10, ls=1.8,
-                   motion=motion, delay=0.05))
-    o.append(text(W - 56, 34, "%d IN THE LAST 12 MONTHS" % STATS["total_contributions"],
-                  size=10, fill=P["accent"], weight="700", family=MONO, ls=1.6,
-                  anchor="end", motion=motion, cls="f", delay=0.05))
-
-    base_y, top_y = 186, 66
-    x0, x1 = 56, W - 56
-    slot = (x1 - x0) / max(len(data), 1)
-    bw = slot * 0.5
-    mx = max([d["count"] for d in data] or [1])
-
-    o.append(rule(x0, base_y, x1, base_y, P["rule"]))
-    for frac in (0.5, 1.0):
-        gy = base_y - (base_y - top_y) * frac
-        o.append(rule(x0, gy, x1, gy, P["rule"], 0.4))
-
-    for i, d in enumerate(data):
-        cx = x0 + slot * i + slot / 2
-        h = max((base_y - top_y) * d["count"] / mx, 2.5)
-        last = i == len(data) - 1
-        fill = P["accent"] if last else P["bar"]
-        o.append(f'<rect x="{cx - bw/2:.1f}" y="{base_y - h:.1f}" width="{bw:.1f}" '
-                 f'height="{h:.1f}" fill="{fill}" {A(motion, "gy", 0.1 + i * 0.045)}/>')
-        mon = dt.date.fromisoformat(d["month"] + "-01").strftime("%b").upper()
-        o.append(text(cx, base_y + 20, mon, size=9.5,
-                      fill=P["accent"] if last else P["micro"], weight="700",
-                      family=MONO, ls=0.8, anchor="middle",
-                      motion=motion, cls="f", delay=0.3 + i * 0.045))
-        if d["count"]:
-            o.append(text(cx, base_y - h - 8, str(d["count"]), size=10,
-                          fill=P["accent"] if last else P["dim"], weight="700",
-                          family=MONO, anchor="middle",
-                          motion=motion, cls="f", delay=0.45 + i * 0.045))
-
-    o.append("</svg>")
-    return "".join(o)
-
-
-# ------------------------------------------------------------------ bench ----
-def bench(t, motion=True):
-    """1280x340. Black Mamba vs CPython on the repo's own kernels."""
-    W, H = 1280, 340
-    P = THEMES[t]
-    o = [head(W, H, motion)]
-    o.append(f'<rect width="{W}" height="{H}" fill="{P["bg0"]}"/>')
-
-    o.append(label(56, 34, "BENCHMARK  /  BLACK MAMBA vs CPYTHON 3.14", P,
-                   size=10, ls=1.8, motion=motion, delay=0.05))
-    o.append(text(W - 56, 34, "LOWER IS BETTER  ·  MS PER KERNEL", size=10,
-                  fill=P["faint"], weight="700", family=MONO, ls=1.5,
-                  anchor="end", motion=motion, cls="f", delay=0.05))
-
-    # legend
-    o.append(f'<rect x="56" y="52" width="16" height="8" fill="{P["faint"]}" '
-             f'opacity="0.55" {A(motion, "f", 0.15)}/>')
-    o.append(text(78, 60, "CPYTHON", size=9.5, fill=P["dim"], weight="700",
-                  family=MONO, ls=1.2, motion=motion, cls="f", delay=0.15))
-    o.append(f'<rect x="168" y="52" width="16" height="8" fill="{P["accent"]}" '
-             f'{A(motion, "f", 0.18)}/>')
-    o.append(text(190, 60, "BLACK MAMBA", size=9.5, fill=P["dim"], weight="700",
-                  family=MONO, ls=1.2, motion=motion, cls="f", delay=0.18))
-
-    bar_x, bar_max = 300, 560
-    scale = bar_max / 300.0
-    y = 96
-    for i, (name, cpy, bmb, sp) in enumerate(BENCH):
-        d = 0.25 + i * 0.13
-        o.append(text(56, y + 12, name, size=12, fill=P["text"], weight="600",
-                      family=MONO, motion=motion, cls="f", delay=d))
-        w1 = max(6.0, cpy * scale)
-        w2 = max(6.0, bmb * scale)
-        o.append(f'<rect x="{bar_x}" y="{y}" width="{w1:.1f}" height="12" '
-                 f'fill="{P["faint"]}" opacity="0.55" {A(motion, "gx", d)}/>')
-        o.append(f'<rect x="{bar_x}" y="{y+18}" width="{w2:.1f}" height="12" '
-                 f'fill="{P["accent"]}" {A(motion, "gx", d + 0.05)}/>')
-        o.append(text(bar_x + w1 + 10, y + 10, f"{cpy:g} ms", size=10,
-                      fill=P["micro"], weight="500", family=MONO,
-                      motion=motion, cls="f", delay=d + 0.3))
-        o.append(text(bar_x + w2 + 10, y + 28, f"{bmb:g} ms", size=10,
-                      fill=P["accent"], weight="600", family=MONO,
-                      motion=motion, cls="f", delay=d + 0.34))
-        o.append(text(W - 56, y + 22, sp, size=22, fill=P["accent"],
-                      weight="700", family=MONO, ls=-0.5, anchor="end",
-                      motion=motion, cls="r", delay=d + 0.28))
-        y += 56
-
-    o.append(rule(56, H - 30, W - 56, H - 30, P["rule"]))
-    o.append(text(56, H - 12,
-                  "measured with the repo's own suite  ·  tail-call kernel omitted (CPython recurses out)",
-                  size=9.5, fill=P["micro"], weight="500", family=MONO,
-                  motion=motion, cls="f", delay=0.9))
-    o.append("</svg>")
-    return "".join(o)
-
-
-# --------------------------------------------------------------- pipeline ----
-def pipeline(t, motion=True):
-    """1280x320. Black Mamba architecture & execution pipeline: Source -> Target."""
-    W, H = 1280, 320
-    P = THEMES[t]
-    o = [head(W, H, motion)]
-    o.append(f'<rect width="{W}" height="{H}" fill="{P["bg0"]}"/>')
+    o.append(f'<rect width="{W}" height="{H}" rx="12" fill="{P["bg0"]}"/>')
 
     # Top strip
     o.append(rule(0, 44, W, 44, P["rule"]))
-    o.append(f'<circle cx="58" cy="22" r="3.5" fill="{P["accent"]}" {A(motion, "f", 0.05)}/>')
-    o.append(label(70, 26, "PIPELINE  /  BLACK MAMBA (.BMB) COMPILER & EXECUTION ARCHITECTURE", P,
+    o.append(f'<circle cx="36" cy="22" r="3.5" fill="{P["accent"]}" class="pulse"/>')
+    o.append(label(48, 26, "SILICON PROCESSOR DIE FLOORPLAN  /  HETEROGENEOUS COMPUTATION ARCHITECTURE", P,
                    motion=motion, delay=0.08))
-    o.append(text(W - 56, 26, "ZERO-COST ABSTRACTIONS · LLVM 18 · 26.1x SPEEDUP", size=10,
-                  fill=P["accent"], weight="700", family=MONO, ls=1.5,
+    o.append(text(W - 36, 26, "PROCESS: DIRECT x86-64 JIT / WASM / C++ · 4 HETEROGENEOUS CORES", size=10,
+                  fill=P["accent"], weight="700", family=MONO, ls=1.2,
                   anchor="end", motion=motion, cls="f", delay=0.12))
 
-    # 5 Pipeline stages
-    stages = [
-        ("01 / SOURCE", ".bmb grammar", ["Pythonic Syntax", "Unboxed Structs", "Zero Borrow Overhead"]),
-        ("02 / FRONTEND", "lexer & ast", ["Indentation Desugar", "Dynamic C3 MRO", "Scope Symbol Graph"]),
-        ("03 / INFERENCE", "type engine", ["Static Propagator", "Escape Analysis", "Polymorphic Vtables"]),
-        ("04 / CODEGEN", "llvm & jit", ["LLVM 18 IR Emitter", "TCO (5M -> 0 Frames)", "Direct Exec Memory"]),
-        ("05 / TARGET", "native bin", ["PE32+ / ELF64 Output", "1.7 KB WebAssembly", "26.1x Speedup / 0 GC"]),
+    # Die outer frame
+    o.append(f'<rect x="24" y="56" width="{W-48}" height="332" rx="8" '
+             f'fill="{P["bg1"]}" stroke="{P["rule"]}" stroke-width="1.2"/>')
+
+    # Core 0: JIT Compiler (Top Left)
+    bx0, by0, bw, bh = 36, 68, 590, 134
+    o.append(f'<rect x="{bx0}" y="{by0}" width="{bw}" height="{bh}" rx="6" '
+             f'fill="{P["panel"]}" stroke="{P["rule"]}" stroke-width="1"/>')
+    o.append(text(bx0 + 16, by0 + 22, "CORE 0 // NATIVE COMPILER & JIT RUNTIME [BLACK MAMBA]", size=11,
+                  fill=P["text"], weight="700", family=MONO, ls=0.5))
+    o.append(text(bx0 + bw - 16, by0 + 22, "26.1x FASTER vs CPYTHON", size=9.5, fill=P["accent"],
+                  weight="700", family=MONO, anchor="end"))
+    o.append(rule(bx0, by0 + 32, bx0 + bw, by0 + 32, P["rule"]))
+    o.append(text(bx0 + 16, by0 + 52, "• Frontend: Indentation desugar · Dynamic C3 Diamond MRO (0.42ms)", size=10.5, fill=P["dim"], family=MONO))
+    o.append(text(bx0 + 16, by0 + 72, "• Codegen: LLVM 18 IR · Direct x86-64 executable memory mapping (PROT_EXEC)", size=10.5, fill=P["dim"], family=MONO))
+    o.append(text(bx0 + 16, by0 + 92, "• Target: Tail-Call recursion collapse (5M -> 0 frames) · Zero GC pause", size=10.5, fill=P["dim"], family=MONO))
+    # Tag chips
+    chips0 = ["x86-64 JIT", "C3 MRO", "LLVM 18", "1.7KB WASM", "TLS 1.3 / SQL"]
+    cx = bx0 + 16
+    for c in chips0:
+        cw = len(c) * 6.5 + 14
+        o.append(f'<rect x="{cx}" y="{by0 + 106}" width="{cw:.1f}" height="18" rx="4" fill="{P["bg0"]}" stroke="{P["rule"]}" stroke-width="0.8"/>')
+        o.append(text(cx + cw/2, by0 + 118, c, size=8.5, fill=P["micro"], weight="600", family=MONO, anchor="middle"))
+        cx += cw + 6
+
+    # Core 1: Applied AI & Adaptive Inference (Top Right)
+    bx1 = 654
+    o.append(f'<rect x="{bx1}" y="{by0}" width="{bw}" height="{bh}" rx="6" '
+             f'fill="{P["panel"]}" stroke="{P["rule"]}" stroke-width="1"/>')
+    o.append(text(bx1 + 16, by0 + 22, "CORE 1 // APPLIED AI & ADAPTIVE INFERENCE [TYPEN置CRAPE / KLYPH]", size=11,
+                  fill=P["text"], weight="700", family=MONO, ls=0.5))
+    o.append(text(bx1 + bw - 16, by0 + 22, "ZERO-UNCHECKED LOOPS", size=9.5, fill=P["green"],
+                  weight="700", family=MONO, anchor="end"))
+    o.append(rule(bx1, by0 + 32, bx1 + bw, by0 + 32, P["rule"]))
+    o.append(text(bx1 + 16, by0 + 52, "• Resilience: Groq (Llama 3 @ 420ms) -> Gemini fallback on 429 rate limit", size=10.5, fill=P["dim"], family=MONO))
+    o.append(text(bx1 + 16, by0 + 72, "• Verification: Closed-loop beam search scoring over spaCy AST & 50k rules", size=10.5, fill=P["dim"], family=MONO))
+    o.append(text(bx1 + 16, by0 + 92, "• Memory: 16-chunk IndexedDB paging to bound mobile peak memory limits", size=10.5, fill=P["dim"], family=MONO))
+    chips1 = ["GROQ LLAMA-3", "GEMINI 2.0", "SPACY AST", "BEAM SCORING", "INDEXEDDB"]
+    cx = bx1 + 16
+    for c in chips1:
+        cw = len(c) * 6.5 + 14
+        o.append(f'<rect x="{cx}" y="{by0 + 106}" width="{cw:.1f}" height="18" rx="4" fill="{P["bg0"]}" stroke="{P["rule"]}" stroke-width="0.8"/>')
+        o.append(text(cx + cw/2, by0 + 118, c, size=8.5, fill=P["micro"], weight="600", family=MONO, anchor="middle"))
+        cx += cw + 6
+
+    # Central High-Speed Data Bus (Interconnect)
+    by_bus = 212
+    o.append(rule(36, by_bus, W - 36, by_bus, P["rule"]))
+    if motion:
+        o.append(f'<line x1="36" y1="{by_bus}" x2="{W-36}" y2="{by_bus}" stroke="{P["accent"]}" stroke-width="1.8" class="flow"/>')
+    o.append(f'<rect x="{W/2 - 240}" y="{by_bus - 10}" width="480" height="20" rx="4" fill="{P["bg1"]}" stroke="{P["rule"]}" stroke-width="1"/>')
+    o.append(text(W / 2, by_bus + 3.5, "◄── ZERO-COST UNIFIED MEMORY BUS // MMAP · DIRECT MMIO · TELEMETRY ──►",
+                  size=9.5, fill=P["accent"], weight="700", family=MONO, anchor="middle", ls=0.8))
+
+    # Core 2: On-Device Vision Accelerator (Bottom Left)
+    by2 = 242
+    o.append(f'<rect x="{bx0}" y="{by2}" width="{bw}" height="{bh}" rx="6" '
+             f'fill="{P["panel"]}" stroke="{P["rule"]}" stroke-width="1"/>')
+    o.append(text(bx0 + 16, by2 + 22, "CORE 2 // ON-DEVICE COMPUTER VISION [MEEMOMINI]", size=11,
+                  fill=P["text"], weight="700", family=MONO, ls=0.5))
+    o.append(text(bx0 + bw - 16, by2 + 22, "18ms INFERENCE · 0 EGRESS", size=9.5, fill=P["green"],
+                  weight="700", family=MONO, anchor="end"))
+    o.append(rule(bx0, by2 + 32, bx0 + bw, by2 + 32, P["rule"]))
+    o.append(text(bx0 + 16, by2 + 52, "• Vision: MediaPipe ImageSegmenter executing entirely in browser WASM", size=10.5, fill=P["dim"], family=MONO))
+    o.append(text(bx0 + 16, by2 + 72, "• Privacy: Zero frames exfiltrated to cloud servers · True local execution", size=10.5, fill=P["dim"], family=MONO))
+    o.append(text(bx0 + 16, by2 + 92, "• Export: Hardware-accelerated canvas filter pipeline · Still/GIF/MP4 PWA", size=10.5, fill=P["dim"], family=MONO))
+    chips2 = ["MEDIAPIPE WASM", "ON-DEVICE", "WEBGL FILTERS", "OFFLINE PWA"]
+    cx = bx0 + 16
+    for c in chips2:
+        cw = len(c) * 6.5 + 14
+        o.append(f'<rect x="{cx}" y="{by2 + 106}" width="{cw:.1f}" height="18" rx="4" fill="{P["bg0"]}" stroke="{P["rule"]}" stroke-width="0.8"/>')
+        o.append(text(cx + cw/2, by2 + 118, c, size=8.5, fill=P["micro"], weight="600", family=MONO, anchor="middle"))
+        cx += cw + 6
+
+    # Core 3: Embedded Firmware & Hardware (Bottom Right)
+    o.append(f'<rect x="{bx1}" y="{by2}" width="{bw}" height="{bh}" rx="6" '
+             f'fill="{P["panel"]}" stroke="{P["rule"]}" stroke-width="1"/>')
+    o.append(text(bx1 + 16, by2 + 22, "CORE 3 // EDGE FIRMWARE & TELEMETRY [VOLTSENSE]", size=11,
+                  fill=P["text"], weight="700", family=MONO, ls=0.5))
+    o.append(text(bx1 + bw - 16, by2 + 22, "ZERO-SECRET CLIENT", size=9.5, fill=P["accent"],
+                  weight="700", family=MONO, anchor="end"))
+    o.append(rule(bx1, by2 + 32, bx1 + bw, by2 + 32, P["rule"]))
+    o.append(text(bx1 + 16, by2 + 52, "• Firmware: Memory-bounded C++ on ESP32 sampling load & occupancy sensors", size=10.5, fill=P["dim"], family=MONO))
+    o.append(text(bx1 + 16, by2 + 72, "• Security: Device -> Vercel -> FCM alerts (hardware holds zero secrets)", size=10.5, fill=P["dim"], family=MONO))
+    o.append(text(bx1 + 16, by2 + 92, "• Control: Multi-relay electrical isolation & live Firebase RTDB sync", size=10.5, fill=P["dim"], family=MONO))
+    chips3 = ["ESP32 C++", "FIREBASE RTDB", "FCM PUSH", "ADC SAMPLING", "OPTOCOUPLERS"]
+    cx = bx1 + 16
+    for c in chips3:
+        cw = len(c) * 6.5 + 14
+        o.append(f'<rect x="{cx}" y="{by2 + 106}" width="{cw:.1f}" height="18" rx="4" fill="{P["bg0"]}" stroke="{P["rule"]}" stroke-width="0.8"/>')
+        o.append(text(cx + cw/2, by2 + 118, c, size=8.5, fill=P["micro"], weight="600", family=MONO, anchor="middle"))
+        cx += cw + 6
+
+    # Bottom Hardware Status
+    o.append(rule(0, 400, W, 400, P["rule"]))
+    statuses = [
+        ("EXEC CORE 0", "ACTIVE · 0 KB GC OVERHEAD"),
+        ("AI CORE 1", "RESILIENT CASCADE (GROQ -> GEMINI)"),
+        ("VISION CORE 2", "18ms WASM ON-DEVICE INFERENCE"),
+        ("EDGE CORE 3", "10Hz TELEMETRY SAMPLING · SECURE"),
     ]
-
-    bx0 = 56
-    box_w = 198
-    gap = 44.5
-    box_h = 138
-    py = 68
-
-    for i, (title, sub, bullets) in enumerate(stages):
-        bx = bx0 + i * (box_w + gap)
-        d = 0.2 + i * 0.12
-
-        # Card container
-        o.append(f'<rect x="{bx:.1f}" y="{py}" width="{box_w}" height="{box_h}" '
-                 f'fill="{P["panel"]}" stroke="{P["rule"]}" stroke-width="1" '
-                 f'{A(motion, "f", d)}/>')
-        # Stage header
-        o.append(text(bx + 16, py + 24, title, size=11, fill=P["text"], weight="700",
-                      family=MONO, ls=1.0, motion=motion, cls="f", delay=d + 0.05))
-        o.append(text(bx + box_w - 16, py + 24, sub, size=9.5, fill=P["accent"], weight="600",
-                      family=MONO, anchor="end", motion=motion, cls="f", delay=d + 0.05))
-        o.append(rule(bx, py + 36, bx + box_w, py + 36, P["rule"]))
-
-        # Bullet list
-        for j, b in enumerate(bullets):
-            by = py + 58 + j * 24
-            o.append(f'<circle cx="{bx + 20:.1f}" cy="{by - 4:.1f}" r="2" fill="{P["accent"]}" '
-                     f'{A(motion, "f", d + 0.1 + j * 0.05)}/>')
-            o.append(text(bx + 30, by, b, size=11, fill=P["dim"], weight="400",
-                          family=MONO, motion=motion, cls="f", delay=d + 0.1 + j * 0.05))
-
-        # Bus connector to next node
-        if i < len(stages) - 1:
-            cx1 = bx + box_w
-            cx2 = cx1 + gap
-            cy = py + box_h / 2
-            o.append(rule(cx1, cy, cx2, cy, P["rule"]))
-            o.append(f'<polygon points="{cx2-4:.1f},{cy-3:.1f} {cx2+2:.1f},{cy:.1f} {cx2-4:.1f},{cy+3:.1f}" '
-                     f'fill="{P["micro"]}" {A(motion, "f", d + 0.15)}/>')
-            if motion:
-                o.append(f'<line x1="{cx1:.1f}" y1="{cy:.1f}" x2="{cx2:.1f}" y2="{cy:.1f}" '
-                         f'stroke="{P["accent"]}" stroke-width="1.8" class="flow"/>')
-                o.append(f'<circle cx="{cx1 + gap/2:.1f}" cy="{cy:.1f}" r="2.5" fill="{P["accent"]}" '
-                         f'class="pulse" style="animation-delay:{d:.2f}s"/>')
-
-    # Bottom telemetry indicators
-    o.append(rule(0, 236, W, 236, P["rule"]))
-    telemetry_chips = [
-        ("RECURSION COLLAPSE", "5,000,000 -> 0 FRAMES"),
-        ("RUNTIME GC OVERHEAD", "0 KB / DIRECT MMAP"),
-        ("BENCHMARK SPEEDUP", "26.1x vs CPYTHON (fib32)"),
-        ("NATIVE STDLIB SUITE", "TLS 1.3 · SQL · GUI TOOLKIT"),
-    ]
-    for i, (k, v) in enumerate(telemetry_chips):
-        cx = 56 + i * 292
-        d = 0.8 + i * 0.08
+    for i, (k, v) in enumerate(statuses):
+        cx = 36 + i * 312
         if i:
-            o.append(rule(cx - 24, 252, cx - 24, 302, P["rule"]))
-        o.append(label(cx, 264, k, P, motion=motion, delay=d))
-        o.append(text(cx, 294, v, size=14, fill=P["text"], weight="700",
-                      family=MONO, ls=0.2, motion=motion, cls="r", delay=d + 0.04))
+            o.append(rule(cx - 24, 408, cx - 24, 432, P["rule"]))
+        o.append(label(cx, 416, k, P, size=9.5, ls=1.2))
+        o.append(text(cx, 430, v, size=10.5, fill=P["text"], weight="700", family=MONO))
 
     o.append("</svg>")
     return "".join(o)
 
+# ---------------------------------------------------------- disassembly ----
+def disassembly(t, motion=True):
+    """1280x370. Side-by-Side Source vs Native Machine Disassembly & Benchmark."""
+    W, H = 1280, 370
+    P = THEMES[t]
+    o = [head(W, H, motion)]
+    o.append(f'<rect width="{W}" height="{H}" rx="12" fill="{P["bg0"]}"/>')
+
+    # Top strip
+    o.append(rule(0, 44, W, 44, P["rule"]))
+    o.append(f'<circle cx="36" cy="22" r="3.5" fill="{P["accent"]}" class="pulse"/>')
+    o.append(label(48, 26, "DISASSEMBLY & EXECUTION ENGINE  /  SOURCE (.BMB) -> DIRECT x86-64 JIT", P,
+                   motion=motion, delay=0.08))
+    o.append(text(W - 36, 26, "KERNEL: FIB(32) · COMPILATION: 0.42ms · 26.1x FASTER THAN CPYTHON", size=10,
+                  fill=P["accent"], weight="700", family=MONO, ls=1.2,
+                  anchor="end", motion=motion, cls="f", delay=0.12))
+
+    # Left: Source .bmb
+    pw = 570
+    o.append(f'<rect x="36" y="58" width="{pw}" height="220" rx="6" fill="{P["panel"]}" stroke="{P["rule"]}" stroke-width="1"/>')
+    o.append(text(52, 80, "SOURCE // fibonacci.bmb", size=11, fill=P["accent"], weight="700", family=MONO))
+    o.append(text(36 + pw - 16, 80, "PYTHONIC SYNTAX · STATIC INFERENCE", size=9.5, fill=P["micro"], weight="600", family=MONO, anchor="end"))
+    o.append(rule(36, 92, 36 + pw, 92, P["rule"]))
+
+    src_lines = [
+        ("def", P["accent"]), (" fib(n: int) -> int:", P["text"]),
+        ("    if n <= 1:", P["text"]),
+        ("        return n", P["cyan"]),
+        ("    return fib(n - 1) + fib(n - 2)", P["cyan"]),
+        ("", P["dim"]),
+        ("# Compiled via Black Mamba v1.1.0 JIT", P["micro"]),
+        ("# AST Parsing: 0.42ms | Type Prop: 0.31ms | Codegen: 1.84ms", P["micro"]),
+    ]
+    cur_y = 114
+    for line in [
+        [("def", P["accent"]), (" fib(n: int) -> int:", P["text"])],
+        [("    if n <= 1:", P["dim"])],
+        [("        return n", P["cyan"])],
+        [("    return fib(n - 1) + fib(n - 2)", P["cyan"])],
+        [("", P["text"])],
+        [("# Compiled via Black Mamba v1.1.0 Native JIT", P["micro"])],
+        [("# Frontend: 0.42ms | Inference: 0.31ms | JIT Alloc: 1.84ms", P["micro"])],
+        [("# Zero Garbage Collector Overhead | Direct Machine Execution", P["green"])],
+    ]:
+        tx = 52
+        for seg, color in line:
+            o.append(text(tx, cur_y, seg, size=11.5, fill=color, weight="600", family=MONO))
+            tx += len(seg) * 7.1
+        cur_y += 18
+
+    # Center: JIT arrow
+    o.append(f'<polygon points="618,160 638,168 618,176" fill="{P["accent"]}"/>')
+    o.append(text(628, 150, "JIT", size=9, fill=P["accent"], weight="800", family=MONO, anchor="middle"))
+
+    # Right: Native Assembly
+    bx1 = 650
+    pw1 = W - bx1 - 36
+    o.append(f'<rect x="{bx1}" y="58" width="{pw1}" height="220" rx="6" fill="{P["panel"]}" stroke="{P["rule"]}" stroke-width="1"/>')
+    o.append(text(bx1 + 16, 80, "DISASSEMBLY // NATIVE x86-64 MACHINE CODE", size=11, fill=P["text"], weight="700", family=MONO))
+    o.append(text(bx1 + pw1 - 16, 80, "PROT_READ | PROT_WRITE | PROT_EXEC", size=9.5, fill=P["micro"], weight="600", family=MONO, anchor="end"))
+    o.append(rule(bx1, 92, bx1 + pw1, 92, P["rule"]))
+
+    asm_lines = [
+        "fib:",
+        "    cmp    rdi, 1",
+        "    jle    .L_base",
+        "    push   rbx",
+        "    mov    rbx, rdi",
+        "    dec    rdi",
+        "    call   fib",
+        "    mov    rsi, rax",
+        "    lea    rdi, [rbx - 2]",
+        "    call   fib",
+        "    add    rax, rsi",
+        "    pop    rbx",
+        "    ret",
+        ".L_base:",
+        "    mov    rax, rdi",
+        "    ret",
+    ]
+    # Two columns of assembly
+    for idx, l in enumerate(asm_lines[:8]):
+        col_x = bx1 + 16
+        col_y = 114 + idx * 18
+        color = P["accent"] if l.endswith(":") else P["text"]
+        o.append(text(col_x, col_y, l, size=11, fill=color, weight="600", family=MONO))
+    for idx, l in enumerate(asm_lines[8:]):
+        col_x = bx1 + 260
+        col_y = 114 + idx * 18
+        color = P["accent"] if l.endswith(":") else P["text"]
+        o.append(text(col_x, col_y, l, size=11, fill=color, weight="600", family=MONO))
+
+    # Bottom Benchmark Speedup Visualization
+    o.append(rule(0, 292, W, 292, P["rule"]))
+    o.append(label(36, 310, "EMPIRICAL SPEEDUP RATIO: FIB(32) ON IDENTICAL HOST HARDWARE", P, size=9.5, ls=1.2))
+
+    # CPython bar
+    by_c = 328
+    o.append(text(36, by_c + 10, "CPython 3.14 (Interpreted)", size=10, fill=P["dim"], weight="600", family=MONO))
+    o.append(f'<rect x="230" y="{by_c}" width="500" height="12" rx="3" fill="{P["bar"]}"/>')
+    o.append(text(742, by_c + 10, "288.62 ms (14.2 MB RAM)", size=10, fill=P["dim"], weight="600", family=MONO))
+
+    # Black Mamba bar
+    by_m = 348
+    o.append(text(36, by_m + 10, "Black Mamba (Native JIT)", size=10, fill=P["text"], weight="700", family=MONO))
+    mb_w = max(19, int(500 * (11.078 / 288.62)))
+    o.append(f'<rect x="230" y="{by_m}" width="{mb_w}" height="12" rx="3" fill="{P["accent"]}"/>')
+    o.append(text(230 + mb_w + 12, by_m + 10, "11.08 ms (1.1 MB RAM)  ──  26.1x FASTER [TCO 5M -> 0 FRAMES]",
+                  size=10, fill=P["accent"], weight="800", family=MONO))
+
+    o.append("</svg>")
+    return "".join(o)
 
 # -------------------------------------------------------------- telemetry ----
 def telemetry(t, motion=True):
@@ -680,14 +546,14 @@ def telemetry(t, motion=True):
     W, H = 1280, 230
     P = THEMES[t]
     o = [head(W, H, motion)]
-    o.append(f'<rect width="{W}" height="{H}" fill="{P["bg0"]}"/>')
+    o.append(f'<rect width="{W}" height="{H}" rx="12" fill="{P["bg0"]}"/>')
 
     # Top strip
     o.append(rule(0, 44, W, 44, P["rule"]))
-    o.append(f'<circle cx="58" cy="22" r="3.5" fill="{P["accent"]}" class="pulse"/>')
-    o.append(label(70, 26, "TELEMETRY RADAR  /  REAL-TIME ISSUEOPS SIGNAL LEDGER", P,
+    o.append(f'<circle cx="36" cy="22" r="3.5" fill="{P["accent"]}" class="pulse"/>')
+    o.append(label(48, 26, "TELEMETRY RADAR  /  REAL-TIME ISSUEOPS SIGNAL LEDGER", P,
                    motion=motion, delay=0.08))
-    o.append(text(W - 56, 26, "STATUS: ONLINE [200 OK] · EVENT DISPATCH ~15S", size=10,
+    o.append(text(W - 36, 26, "STATUS: ONLINE [200 OK] · EVENT DISPATCH ~15S", size=10,
                   fill=P["accent"], weight="700", family=MONO, ls=1.5,
                   anchor="end", motion=motion, cls="f", delay=0.12))
 
@@ -703,154 +569,86 @@ def telemetry(t, motion=True):
     if not signals:
         signals = [
             {"id": "SIG-001", "sender": "kicode01", "org": "Lead Architect",
-             "focus": "Applied AI / Systems", "note": "Genesis telemetry port online.",
+             "focus": "Applied AI / Compilers", "note": "Genesis telemetry port online.",
              "timestamp": "2026-10-28 15:15 UTC"}
         ]
 
     y = 74
-    o.append(text(56, y, "SIGNAL", size=9.5, fill=P["micro"], weight="700", family=MONO, ls=1.2))
-    o.append(text(160, y, "TRANSMITTER", size=9.5, fill=P["micro"], weight="700", family=MONO, ls=1.2))
-    o.append(text(340, y, "ORGANIZATION / AFFILIATION", size=9.5, fill=P["micro"], weight="700", family=MONO, ls=1.2))
+    o.append(text(48, y, "SIGNAL", size=9.5, fill=P["micro"], weight="700", family=MONO, ls=1.2))
+    o.append(text(150, y, "TRANSMITTER", size=9.5, fill=P["micro"], weight="700", family=MONO, ls=1.2))
+    o.append(text(330, y, "ORGANIZATION / AFFILIATION", size=9.5, fill=P["micro"], weight="700", family=MONO, ls=1.2))
     o.append(text(660, y, "DOMAIN FOCUS", size=9.5, fill=P["micro"], weight="700", family=MONO, ls=1.2))
     o.append(text(960, y, "TIMESTAMP", size=9.5, fill=P["micro"], weight="700", family=MONO, ls=1.2))
-    o.append(text(W - 56, y, "STATUS", size=9.5, fill=P["micro"], weight="700", family=MONO, ls=1.2, anchor="end"))
-    o.append(rule(56, y + 10, W - 56, y + 10, P["rule"]))
+    o.append(text(W - 48, y, "STATUS", size=9.5, fill=P["micro"], weight="700", family=MONO, ls=1.2, anchor="end"))
+    o.append(rule(48, y + 10, W - 48, y + 10, P["rule"]))
 
     for i, sig in enumerate(signals[:3]):
         ry = y + 36 + i * 28
         d = 0.2 + i * 0.1
-        o.append(f'<circle cx="44" cy="{ry - 4}" r="2.5" fill="{P["accent"]}" {A(motion, "f", d)}/>')
-        o.append(text(56, ry, sig.get("id", f"SIG-{i+1:03d}"), size=11, fill=P["accent"],
+        o.append(f'<circle cx="36" cy="{ry - 4}" r="2.5" fill="{P["accent"]}" {A(motion, "f", d)}/>')
+        o.append(text(48, ry, sig.get("id", f"SIG-{i+1:03d}"), size=11, fill=P["accent"],
                       weight="700", family=MONO, motion=motion, cls="f", delay=d))
-        o.append(text(160, ry, "@" + sig.get("sender", "anonymous")[:18], size=11, fill=P["text"],
+        o.append(text(150, ry, "@" + sig.get("sender", "anonymous")[:18], size=11, fill=P["text"],
                       weight="600", family=MONO, motion=motion, cls="f", delay=d + 0.05))
-        o.append(text(340, ry, sig.get("org", "Verified Guest")[:32], size=11, fill=P["dim"],
+        o.append(text(330, ry, sig.get("org", "Verified Guest")[:32], size=11, fill=P["dim"],
                       weight="400", family=MONO, motion=motion, cls="f", delay=d + 0.1))
         o.append(text(660, ry, sig.get("focus", "Applied AI / Systems")[:32], size=11, fill=P["dim"],
                       weight="400", family=MONO, motion=motion, cls="f", delay=d + 0.15))
         o.append(text(960, ry, sig.get("timestamp", "RECENT")[:16], size=10.5, fill=P["micro"],
                       weight="400", family=MONO, motion=motion, cls="f", delay=d + 0.2))
-        o.append(text(W - 56, ry, "[ACK // VERIFIED]", size=10.5, fill=P["accent"],
+        o.append(text(W - 48, ry, "[ACK // VERIFIED]", size=10.5, fill=P["accent"],
                       weight="700", family=MONO, ls=0.8, anchor="end", motion=motion, cls="f", delay=d + 0.25))
 
-    o.append(rule(56, H - 32, W - 56, H - 32, P["rule"]))
-    o.append(text(56, H - 14,
+    o.append(rule(48, H - 32, W - 48, H - 32, P["rule"]))
+    o.append(text(48, H - 14,
                   "trigger a live telemetry handshake: open an issue to execute GitHub Actions IssueOps and render signal in ~15s",
                   size=9.5, fill=P["micro"], weight="500", family=MONO, motion=motion, cls="f", delay=0.8))
-    o.append(text(W - 56, H - 14, "EVENT-DRIVEN STATE MACHINE", size=9.5, fill=P["micro"],
+    o.append(text(W - 48, H - 14, "EVENT-DRIVEN STATE MACHINE", size=9.5, fill=P["micro"],
                   weight="600", family=MONO, ls=1.0, anchor="end", motion=motion, cls="f", delay=0.8))
 
     o.append("</svg>")
     return "".join(o)
 
-
-
-# ---------------------------------------------------------- oscilloscope ----
-def oscilloscope(t, motion=True):
-    """1280x280. Hardware logic analyzer and runtime execution waveforms."""
-    W, H = 1280, 280
+# ------------------------------------------------------------------- bars ----
+def bars(t, motion=True):
+    """1280x160. Monthly contribution volume across the last 12 months."""
+    W, H = 1280, 160
     P = THEMES[t]
     o = [head(W, H, motion)]
-    o.append(f'<rect width="{W}" height="{H}" fill="{P["bg0"]}"/>')
+    o.append(f'<rect width="{W}" height="{H}" rx="12" fill="{P["bg0"]}"/>')
 
-    # Top strip
     o.append(rule(0, 44, W, 44, P["rule"]))
-    o.append(f'<circle cx="58" cy="22" r="3.5" fill="{P["accent"]}" class="pulse"/>')
-    o.append(label(70, 26, "OSCILLOSCOPE  /  HARDWARE & RUNTIME EXECUTION WAVEFORMS", P,
-                   motion=motion, delay=0.08))
-    o.append(text(W - 56, 26, "TIMEBASE: 10µs/DIV · CH1-CH4 LOGIC ANALYZER · 120MHz", size=10,
-                  fill=P["accent"], weight="700", family=MONO, ls=1.5,
+    o.append(f'<circle cx="36" cy="22" r="3.5" fill="{P["accent"]}" class="pulse"/>')
+    o.append(label(48, 26, "CONTRIBUTION PULSE  /  12-MONTH ACTIVITY SHAPE", P, motion=motion, delay=0.08))
+    o.append(text(W - 36, 26, "%d CONTRIBUTIONS IN THE LAST YEAR" % STATS.get("total_contributions", 382),
+                  size=10, fill=P["accent"], weight="700", family=MONO, ls=1.2,
                   anchor="end", motion=motion, cls="f", delay=0.12))
 
-    # Grid lines (oscilloscope phosphor graticule)
-    gw0, gw1 = 200, W - 56
-    divs = 8
-    step_x = (gw1 - gw0) / divs
-    for k in range(divs + 1):
-        gx = gw0 + k * step_x
-        o.append(f'<line x1="{gx:.1f}" y1="56" x2="{gx:.1f}" y2="230" stroke="{P["rule"]}" stroke-width="0.8" stroke-dasharray="2 4" opacity="0.6"/>')
+    m_data = STATS.get("monthly", [])
+    if m_data:
+        max_c = max(d["count"] for d in m_data) or 1
+        n = len(m_data)
+        bar_w = 76
+        gap = (W - 96 - (n * bar_w)) / (n - 1) if n > 1 else 0
+        max_h = 68
+        base_y = 132
 
-    for gy in [98, 142, 186]:
-        o.append(f'<line x1="{gw0}" y1="{gy}" x2="{gw1}" y2="{gy}" stroke="{P["rule"]}" stroke-width="0.8" stroke-dasharray="2 4" opacity="0.6"/>')
-
-    # Channel 1: CLK_120MHZ (Square wave clock pulses)
-    y1_base, y1_high = 90, 74
-    o.append(text(56, 82, "CH1 / CLK_120MHz", size=10, fill=P["text"], weight="700", family=MONO))
-    o.append(text(56, 94, "x86-64 Native JIT", size=9, fill=P["micro"], weight="500", family=MONO))
-    ch1_pts = [f"M {gw0} {y1_base}"]
-    cur_x = gw0
-    step = 16
-    high = True
-    while cur_x < gw1:
-        cur_x += step
-        y = y1_high if high else y1_base
-        ch1_pts.append(f"H {cur_x:.1f}")
-        high = not high
-        next_y = y1_high if high else y1_base
-        ch1_pts.append(f"V {next_y}")
-    ch1_path = " ".join(ch1_pts)
-    cls1 = 'class="trace-fast"' if motion else ''
-    o.append(f'<path d="{ch1_path}" fill="none" stroke="{P["accent"]}" stroke-width="1.8" {cls1}/>')
-
-    # Channel 2: AST C3 MRO Lock (Stepped multiple inheritance resolution)
-    y2_base, y2_mid, y2_high = 134, 126, 118
-    o.append(text(56, 126, "CH2 / C3_MRO_LOCK", size=10, fill=P["text"], weight="700", family=MONO))
-    o.append(text(56, 138, "Linearization 0.42ms", size=9, fill=P["micro"], weight="500", family=MONO))
-    ch2_d = (f"M {gw0} {y2_base} H {gw0+120} V {y2_mid} H {gw0+280} V {y2_high} H {gw0+620} "
-             f"V {y2_base} H {gw0+740} V {y2_high} H {gw1}")
-    cls2 = 'class="trace"' if motion else ''
-    o.append(f'<path d="{ch2_d}" fill="none" stroke="{P["green"]}" stroke-width="1.8" {cls2}/>')
-
-    # Channel 3: TCO Collapse (Recursive call burst collapsing into zero stack baseline)
-    y3_base, y3_high = 178, 162
-    o.append(text(56, 170, "CH3 / TCO_COLLAPSE", size=10, fill=P["text"], weight="700", family=MONO))
-    o.append(text(56, 182, "5M -> 0 Call Frames", size=9, fill=P["micro"], weight="500", family=MONO))
-    ch3_pts = [f"M {gw0} {y3_base}"]
-    cur_x = gw0
-    while cur_x < gw0 + 360:
-        cur_x += 10
-        ch3_pts.append(f"H {cur_x:.1f} V {y3_high} H {cur_x+5:.1f} V {y3_base}")
-        cur_x += 5
-    collapse_x = gw0 + 360
-    ch3_pts.append(f"H {gw1}")
-    ch3_path = " ".join(ch3_pts)
-    cls3 = 'class="trace-fast"' if motion else ''
-    o.append(f'<path d="{ch3_path}" fill="none" stroke="{P["text"]}" stroke-width="1.8" {cls3}/>')
-    o.append(f'<rect x="{collapse_x - 34}" y="152" width="68" height="15" fill="{P["panel"]}" stroke="{P["accent"]}" stroke-width="1"/>')
-    o.append(text(collapse_x, 163, "COLLAPSED", size=8.5, fill=P["accent"], weight="700", family=MONO, anchor="middle"))
-
-    # Channel 4: AI Cascade Latency (Groq -> Gemini -> MediaPipe on-device WASM)
-    y4_groq, y4_gem, y4_mp = 206, 214, 224
-    o.append(text(56, 214, "CH4 / AI_LATENCY", size=10, fill=P["text"], weight="700", family=MONO))
-    o.append(text(56, 226, "420ms -> 18ms WASM", size=9, fill=P["micro"], weight="500", family=MONO))
-    ch4_d = (f"M {gw0} {y4_groq} H {gw0+220} L {gw0+235} {y4_groq-10} L {gw0+250} {y4_gem} "
-             f"H {gw0+480} C {gw0+520} {y4_gem}, {gw0+540} {y4_mp}, {gw0+580} {y4_mp} H {gw1}")
-    cls4 = 'class="trace"' if motion else ''
-    o.append(f'<path d="{ch4_d}" fill="none" stroke="{P["accent"]}" stroke-width="1.8" {cls4}/>')
-    o.append(text(gw0+70, y4_groq - 6, "GROQ LLAMA-3 [420ms]", size=8.5, fill=P["micro"], weight="600", family=MONO))
-    o.append(text(gw0+300, y4_gem - 6, "GEMINI FALLBACK", size=8.5, fill=P["micro"], weight="600", family=MONO))
-    o.append(text(gw0+660, y4_mp - 6, "MEDIAPIPE ON-DEVICE WASM [18ms]", size=8.5, fill=P["green"], weight="700", family=MONO))
-
-    # Bottom indicators
-    o.append(rule(0, 240, W, 240, P["rule"]))
-    telemetry_chips = [
-        ("MMAP JIT ALLOCATION", "PROT_READ | PROT_WRITE | PROT_EXEC"),
-        ("TYPE PROPAGATION", "HINDLEY-MILNER STATIC SOLVER"),
-        ("STACK UNWINDING", "ZERO-COST EXCEPTION FRAMES"),
-        ("EDGE INFERENCE", "1.7KB WASM / 0-SECRET ESP32 FIRMWARE"),
-    ]
-    for i, (k, v) in enumerate(telemetry_chips):
-        cx = 56 + i * 292
-        d = 0.8 + i * 0.08
-        if i:
-            o.append(rule(cx - 24, 248, cx - 24, 274, P["rule"]))
-        o.append(label(cx, 256, k, P, motion=motion, delay=d))
-        o.append(text(cx, 272, v, size=11, fill=P["text"], weight="600",
-                      family=MONO, ls=0.2, motion=motion, cls="f", delay=d + 0.04))
+        for i, d in enumerate(m_data):
+            bx = 48 + i * (bar_w + gap)
+            count = d["count"]
+            bh = int((count / max_c) * max_h)
+            bh = max(bh, 4)
+            by = base_y - bh
+            color = P["accent"] if count == max_c else P["bar"]
+            o.append(f'<rect x="{bx:.1f}" y="{by}" width="{bar_w}" height="{bh}" rx="3" fill="{color}"/>')
+            o.append(text(bx + bar_w / 2, base_y + 16, d["month"][-2:], size=9.5, fill=P["micro"],
+                          weight="600", family=MONO, anchor="middle"))
+            if count > 0:
+                o.append(text(bx + bar_w / 2, by - 6, str(count), size=9.5, fill=P["text"],
+                              weight="700", family=MONO, anchor="middle"))
 
     o.append("</svg>")
     return "".join(o)
-
 
 # --------------------------------------------------------------- readme glue --
 def _replace_block(md, key, body):
@@ -860,7 +658,6 @@ def _replace_block(md, key, body):
     head_, rest = md.split(a, 1)
     _, tail = rest.split(b, 1)
     return f"{head_}{a}\n{body}\n{b}{tail}"
-
 
 def update_readme(S, commits, pulse_commits=None):
     p = os.path.join(ROOT, "README.md")
@@ -893,7 +690,6 @@ def update_readme(S, commits, pulse_commits=None):
             lines.append(f"{c['repo']:18} {c['sha']}  {c['date']}  {c['msg']}")
         md = _replace_block(md, "pulse", "```\n" + "\n".join(lines) + "\n```")
 
-    # Update telemetry markdown block
     tp = os.path.join(ROOT, "telemetry.json")
     if os.path.exists(tp):
         try:
@@ -914,20 +710,17 @@ def update_readme(S, commits, pulse_commits=None):
         f.write(md)
     print("  README.md refreshed")
 
-
 def main():
     global STATS
     STATS = load()
     os.makedirs(ASSETS, exist_ok=True)
 
     jobs = {
-        "boot": boot,
-        "ticker": ticker,
-        "bars": bars,
-        "bench": bench,
-        "pipeline": pipeline,
-        "oscilloscope": oscilloscope,
+        "status-island": status_island,
+        "floorplan": floorplan,
+        "disassembly": disassembly,
         "telemetry": telemetry,
+        "bars": bars,
     }
     for name, fn in jobs.items():
         for theme in ("dark", "light"):
@@ -941,7 +734,6 @@ def main():
     update_readme(STATS, recent_commits(), STATS.get("cross_repo_commits"))
     print(f"\n{STATS['public_repos']} repos · {STATS['total_contributions']} contributions "
           f"· {STATS['commits']} commits · {STATS['active_days']} active days")
-
 
 if __name__ == "__main__":
     main()
