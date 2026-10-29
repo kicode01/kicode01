@@ -1481,37 +1481,36 @@
     ],
     [
       "2026-10-29",
-      12
+      14
     ]
   ],
   "lang_counts": {
-    "LLVM": 1,
+    "Python": 4,
     "JavaScript": 1,
     "TypeScript": 5,
     "HTML": 3,
-    "Python": 3,
     "CSS": 1,
     "Jupyter Notebook": 1
   },
   "lang_colors": {
-    "Python": "#3B82F6",
-    "TypeScript": "#06B6D4",
-    "JavaScript": "#EAB308",
-    "HTML": "#EF4444",
-    "CSS": "#8B5CF6",
-    "Jupyter Notebook": "#F97316",
-    "C++": "#EC4899",
-    "C": "#64748B",
-    "LLVM": "#10B981",
-    "WebAssembly": "#0284C7",
-    "OpenSCAD": "#F59E0B",
-    "Shell": "#10B981"
+    "Python": "#3572A5",
+    "TypeScript": "#3178c6",
+    "JavaScript": "#f1e05a",
+    "HTML": "#e34c26",
+    "CSS": "#663399",
+    "Jupyter Notebook": "#DA5B0B",
+    "C++": "#f34b7d",
+    "C": "#555555",
+    "LLVM": "#185619",
+    "WebAssembly": "#04133b",
+    "OpenSCAD": "#e5cd45",
+    "Shell": "#89e051"
   },
   "cross_repo_commits": [
     {
       "repo": "blackmamba-lang",
-      "sha": "6df9231",
-      "msg": "feat(v1.2.0): universal C-ABI FFI, dynamic IAT linker, and C header bindgen",
+      "sha": "fc780cd",
+      "msg": "feat(v1.3.0): full Python syntactic parity & ergonomics (context managers, comprehensions, dunder operators, match guards)",
       "date": "2026-10-29"
     },
     {
@@ -1554,13 +1553,13 @@
       "stars": 0,
       "homepage": null,
       "topics": [],
-      "pushed_at": "2026-10-29T06:49:18Z",
+      "pushed_at": "2026-10-29T09:46:20Z",
       "license": null
     },
     {
       "name": "blackmamba-lang",
       "description": "Black Mamba (.bmb) — High-speed, zero-cost-abstraction programming language solving Python's speed limits. Write like Python, execute like C, compile anywhere.",
-      "language": "LLVM",
+      "language": "Python",
       "stars": 2,
       "homepage": "https://github.com/kicode01/blackmamba-lang",
       "topics": [
@@ -1574,7 +1573,7 @@
         "x86-64",
         "zero-cost-abstractions"
       ],
-      "pushed_at": "2026-10-29T05:05:27Z",
+      "pushed_at": "2026-10-29T07:10:21Z",
       "license": "MIT"
     },
     {
@@ -1763,8 +1762,8 @@
       "license": null
     }
   ],
-  "total_contributions": 397,
-  "commits": 387,
+  "total_contributions": 399,
+  "commits": 389,
   "prs": 1,
   "repos_contributed": 11
 }
