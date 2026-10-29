@@ -1,73 +1,77 @@
+<!-- APPLE KEYNOTE HERO PRODUCT REVEAL -->
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: no-preference)" srcset="assets/hero-linear-dark-anim.svg">
-  <source media="(prefers-color-scheme: light) and (prefers-reduced-motion: no-preference)" srcset="assets/hero-linear-light-anim.svg">
-  <source media="(prefers-color-scheme: dark)" srcset="assets/hero-linear-dark-static.svg">
-  <source media="(prefers-color-scheme: light)" srcset="assets/hero-linear-light-static.svg">
-  <img src="assets/hero-linear-light-static.svg" width="100%" alt="Kian B. — Computer Engineering · Silicon to Model">
+  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: no-preference)" srcset="assets/apple-hero-dark-anim.svg">
+  <source media="(prefers-color-scheme: light) and (prefers-reduced-motion: no-preference)" srcset="assets/apple-hero-light-anim.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/apple-hero-dark-static.svg">
+  <source media="(prefers-color-scheme: light)" srcset="assets/apple-hero-light-static.svg">
+  <img src="assets/apple-hero-light-static.svg" width="100%" alt="Kian B. — Pro performance. Silicon to model.">
 </picture>
 </p>
 
+<!-- APPLE SEGMENTED QUICK NAVIGATION -->
 <p align="center">
-  <a href="#01--system-architecture-matrix"><code>[01_ARCHITECTURE]</code></a> &nbsp;·&nbsp;
-  <a href="#02--empirical-benchmark-telemetry"><code>[02_BENCHMARKS]</code></a> &nbsp;·&nbsp;
-  <a href="#03--engineering-specifications"><code>[03_SPECS]</code></a> &nbsp;·&nbsp;
-  <a href="#04--event-driven-issueops-radar"><code>[04_ISSUEOPS]</code></a> &nbsp;·&nbsp;
-  <a href="#05--contribution-activity"><code>[05_PULSE]</code></a> &nbsp;·&nbsp;
-  <a href="#06--transmission-channels"><code>[06_CONTACT]</code></a>
+  <a href="#01--unified-architecture"><code>[ The Architecture ]</code></a> &nbsp;·&nbsp;
+  <a href="#02--empirical-performance"><code>[ Performance ]</code></a> &nbsp;·&nbsp;
+  <a href="#03--technical-specifications"><code>[ Tech Specs ]</code></a> &nbsp;·&nbsp;
+  <a href="#04--airdrop-telemetry-protocol"><code>[ AirDrop Protocol ]</code></a> &nbsp;·&nbsp;
+  <a href="#05--annual-pulse"><code>[ Activity ]</code></a> &nbsp;·&nbsp;
+  <a href="#06--priority-inquiry"><code>[ Contact ]</code></a>
 </p>
 
-> [!TIP]
-> **Engineering Thesis**: I work where abstraction has a measurable cost — a compiler that has to beat the interpreter it replaces, firmware on an ESP32, an LLM feature that has to be worth its latency. Same instinct in all three: know what the layer below actually costs.
+> [!NOTE]
+> **Engineering Philosophy**: I work where abstraction has a measurable cost — a compiler that has to beat the interpreter it replaces, firmware on an ESP32, an LLM feature that has to be worth its latency. Same instinct in all three: know what the layer below actually costs.
 
 ---
 
-### 01 / system architecture matrix
+### 01 / unified architecture
+
+Built from the silicon up. A heterogeneous computational architecture coordinating four discrete layers — from direct machine memory allocation to edge microcontrollers and client vision:
 
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: no-preference)" srcset="assets/bento-architecture-dark-anim.svg">
-  <source media="(prefers-color-scheme: light) and (prefers-reduced-motion: no-preference)" srcset="assets/bento-architecture-light-anim.svg">
-  <source media="(prefers-color-scheme: dark)" srcset="assets/bento-architecture-dark-static.svg">
-  <source media="(prefers-color-scheme: light)" srcset="assets/bento-architecture-light-static.svg">
-  <img src="assets/bento-architecture-light-static.svg" width="100%" alt="System Capabilities & Architecture Matrix">
+  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: no-preference)" srcset="assets/apple-chip-dark-anim.svg">
+  <source media="(prefers-color-scheme: light) and (prefers-reduced-motion: no-preference)" srcset="assets/apple-chip-light-anim.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/apple-chip-dark-static.svg">
+  <source media="(prefers-color-scheme: light)" srcset="assets/apple-chip-light-static.svg">
+  <img src="assets/apple-chip-light-static.svg" width="100%" alt="K1 Unified Silicon Engine Architecture">
 </picture>
 </p>
 
-- **01 · Native Compiler Runtime:** Pure-Python compiler emitting LLVM 18 IR and direct x86-64 machine instructions via `mmap(PROT_EXEC)`. Implements dynamic C3 Diamond MRO linearization (0.42ms) and collapses 5,000,000 tail-call frames to zero.
-- **02 · Adaptive Applied AI:** Fault-tolerant multi-tier LLM cascade — Groq (Llama 3 @ 420ms) degrades gracefully to Gemini on 429 rate limits, with 16-chunk IndexedDB paging to eliminate OOM on resource-constrained devices.
-- **03 · On-Device Computer Vision:** MediaPipe `ImageSegmenter` running in client WebAssembly — 18ms inference latency with zero image frames exfiltrated to cloud servers.
-- **04 · Edge Firmware & Telemetry:** Memory-bounded C++ on ESP32 sampling load sensors, delegating FCM push credentials to serverless functions so the physical hardware never stores secrets.
+- **Compiler JIT Engine:** Pure-Python compiler that maps executable machine code directly via `mmap(PROT_EXEC)` without garbage collection pauses. Implements dynamic C3 Diamond MRO linearization (0.42ms) and collapses 5,000,000 tail-call frames to zero.
+- **Neural Routing Engine:** Multi-tier stochastic resilience cascade — Groq (Llama 3 @ 420ms) degrades gracefully to Gemini on 429 rate limits, with 16-chunk IndexedDB paging to eliminate OOM on resource-constrained devices.
+- **On-Device Vision Accelerator:** MediaPipe `ImageSegmenter` running in client WebAssembly — 18ms inference latency with zero image frames exfiltrated to external servers.
+- **Edge Firmware Transceiver:** Memory-bounded C++ on ESP32 sampling electrical telemetry, with zero-secret FCM push routing through serverless edge functions.
 
 ---
 
-### 02 / empirical benchmark telemetry
+### 02 / empirical performance
 
 Claims are cheap. This is Black Mamba's benchmark suite executed against CPython 3.14 on identical host hardware:
 
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: no-preference)" srcset="assets/benchmark-matrix-dark-anim.svg">
-  <source media="(prefers-color-scheme: light) and (prefers-reduced-motion: no-preference)" srcset="assets/benchmark-matrix-light-anim.svg">
-  <source media="(prefers-color-scheme: dark)" srcset="assets/benchmark-matrix-dark-static.svg">
-  <source media="(prefers-color-scheme: light)" srcset="assets/benchmark-matrix-light-static.svg">
-  <img src="assets/benchmark-matrix-light-static.svg" width="100%" alt="Benchmark Telemetry vs CPython 3.14">
+  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: no-preference)" srcset="assets/apple-benchmark-dark-anim.svg">
+  <source media="(prefers-color-scheme: light) and (prefers-reduced-motion: no-preference)" srcset="assets/apple-benchmark-light-anim.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/apple-benchmark-dark-static.svg">
+  <source media="(prefers-color-scheme: light)" srcset="assets/apple-benchmark-light-static.svg">
+  <img src="assets/apple-benchmark-light-static.svg" width="100%" alt="Benchmark Performance vs CPython 3.14">
 </picture>
 </p>
 
-| Benchmark Kernel | CPython 3.14 (Interpreted) | Black Mamba (Native JIT) | Speedup Factor | Memory Footprint |
+| Benchmark Kernel | CPython 3.14 (Interpreted) | Black Mamba (Native JIT) | Speedup Ratio | Memory Footprint |
 | :--- | :--- | :--- | :--- | :--- |
 | **`fib(32)`** | 288.62 ms | **11.08 ms** | **26.1x FASTER** | 14.2 MB → **1.1 MB** |
 | **`collatz(40k)`** | 227.84 ms | **8.29 ms** | **27.5x FASTER** | 12.8 MB → **0.9 MB** |
-| **`mandelbrot(120x120)`** | 39.14 ms | **3.37 ms** | **11.6x FASTER** | 18.4 MB → **1.4 MB** |
 | **`count_primes(30k)`** | 22.05 ms | **1.73 ms** | **12.7x FASTER** | 11.2 MB → **0.8 MB** |
+| **`mandelbrot(120x120)`** | 39.14 ms | **3.37 ms** | **11.6x FASTER** | 18.4 MB → **1.4 MB** |
 
 ---
 
-### 03 / engineering specifications
+### 03 / technical specifications
 
 <details>
-<summary><b>SPEC-01 // NATIVE COMPILERS & JIT RUNTIMES — Black Mamba v1.1.0</b></summary>
+<summary><b>SPECIFICATION 01 // NATIVE COMPILERS & JIT RUNTIMES — Black Mamba v1.1.0</b></summary>
 
 <br>
 
@@ -82,7 +86,7 @@ Claims are cheap. This is Black Mamba's benchmark suite executed against CPython
 </details>
 
 <details>
-<summary><b>SPEC-02 // ADAPTIVE APPLIED AI & ON-DEVICE VISION — TypenScrape & meemomini</b></summary>
+<summary><b>SPECIFICATION 02 // ADAPTIVE APPLIED AI & ON-DEVICE VISION — TypenScrape & meemomini</b></summary>
 
 <br>
 
@@ -94,7 +98,7 @@ Claims are cheap. This is Black Mamba's benchmark suite executed against CPython
 </details>
 
 <details>
-<summary><b>SPEC-03 // BOUNDED FIRMWARE & HARDWARE TELEMETRY — VoltSense</b></summary>
+<summary><b>SPECIFICATION 03 // BOUNDED FIRMWARE & HARDWARE TELEMETRY — VoltSense</b></summary>
 
 <br>
 
@@ -107,7 +111,7 @@ Claims are cheap. This is Black Mamba's benchmark suite executed against CPython
 </details>
 
 <details>
-<summary><b>SPEC-04 // EVALUATION LOOPS & VERIFIABLE CREDENTIALS — klyph-txt & shim-platform</b></summary>
+<summary><b>SPECIFICATION 04 // EVALUATION LOOPS & VERIFIABLE CREDENTIALS — klyph-txt & shim-platform</b></summary>
 
 <br>
 
@@ -119,11 +123,11 @@ Claims are cheap. This is Black Mamba's benchmark suite executed against CPython
 </details>
 
 <details>
-<summary><b>SPEC-05 // RECRUITER & LEADERSHIP DOSSIER</b></summary>
+<summary><b>SPECIFICATION 05 // EXECUTIVE & RECRUITER DOSSIER</b></summary>
 
 <br>
 
-> [!NOTE]
+> [!TIP]
 > **Engineering Director & Technical Recruiter Summary**
 > - **Target Roles:** Compiler / Runtime Engineer, Applied AI Systems Engineer, Embedded / Edge Systems Engineer.
 > - **Full-Stack Verticality:** From x86-64 assembly and ESP32 C++ firmware up to Groq/Gemini cascade routers and React 19 / Next.js 16 production interfaces.
@@ -133,7 +137,7 @@ Claims are cheap. This is Black Mamba's benchmark suite executed against CPython
 </details>
 
 <details>
-<summary><b>SPEC-06 // LIVE ECOSYSTEM COMMIT PULSE</b></summary>
+<summary><b>SPECIFICATION 06 // LIVE REPOSITORY COMMIT PULSE</b></summary>
 
 <br>
 
@@ -154,11 +158,11 @@ Recent commits to this profile repository:
 
 <!-- log:start -->
 ```
+e60c23b  chore: refresh profile assets
+dae3a95  chore: merge remote refresh bot stats
+dafe908  feat: complete palette and design transformation — Electric Cyber-Indigo & Neon Cyan (Linear / Frontier AI Lab aesthetic)
 85c233b  chore: refresh profile assets
 e7955fe  feat: complete architectural overhaul — Silicon Die Floorplan, Dynamic Status Island, Native JIT Disassembly Benchmark, and Modular System Specs
-86a3eef  chore: refresh profile assets
-24ac1f3  chore: merge remote refresh bot stats into main
-80ece29  feat: hardware oscilloscope logic analyzer waveforms, executive recruiter triage matrix, and vector pipeline animation
 ```
 <!-- log:end -->
 
@@ -166,7 +170,7 @@ e7955fe  feat: complete architectural overhaul — Silicon Die Floorplan, Dynami
 
 ---
 
-### 04 / event-driven issueops radar
+### 04 / airdrop telemetry protocol
 
 This profile runs an **autonomous event-driven state machine** powered entirely by GitHub Actions IssueOps. You can transmit a live handshake signal directly through GitHub without external servers or databases.
 
@@ -174,22 +178,22 @@ When you submit a handshake, a GitHub Action validates your transmission, append
 
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: no-preference)" srcset="assets/telemetry-radar-dark-anim.svg">
-  <source media="(prefers-color-scheme: light) and (prefers-reduced-motion: no-preference)" srcset="assets/telemetry-radar-light-anim.svg">
-  <source media="(prefers-color-scheme: dark)" srcset="assets/telemetry-radar-dark-static.svg">
-  <source media="(prefers-color-scheme: light)" srcset="assets/telemetry-radar-light-static.svg">
-  <img src="assets/telemetry-radar-light-static.svg" width="100%" alt="Real-time IssueOps Telemetry Radar">
+  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: no-preference)" srcset="assets/apple-radar-dark-anim.svg">
+  <source media="(prefers-color-scheme: light) and (prefers-reduced-motion: no-preference)" srcset="assets/apple-radar-light-anim.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/apple-radar-dark-static.svg">
+  <source media="(prefers-color-scheme: light)" srcset="assets/apple-radar-light-static.svg">
+  <img src="assets/apple-radar-light-static.svg" width="100%" alt="Real-time IssueOps Telemetry Radar">
 </picture>
 </p>
 
 <p align="center">
   <a href="https://github.com/kicode01/kicode01/issues/new?template=telemetry_ping.yml&title=%5BTELEMETRY+PING%5D+from+%40your-handle">
-    <img src="https://img.shields.io/badge/⚡_TRANSMIT_TELEMETRY_HANDSHAKE-CLICK_TO_TRIGGER-cyan?style=for-the-badge&logo=github&labelColor=050814&color=06b6d4" alt="Transmit Handshake">
+    <img src="https://img.shields.io/badge/⚡_TRANSMIT_AIRDROP_HANDSHAKE-CLICK_TO_TRIGGER-blue?style=for-the-badge&logo=apple&labelColor=000000&color=2997ff" alt="Transmit Handshake">
   </a>
 </p>
 
 <!-- telemetry:start -->
-| Signal | Transmitter | Organization | Domain Focus | Timestamp | Status |
+| Signal | Transmitter | Affiliation | Focus Area | Timestamp | Verification |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | `SIG-001` | **@kicode01** | Core Systems Lab | `Applied AI / Compilers` | 2026-10-28 15:15 UTC | `VERIFIED` |
 | `SIG-002` | **@guest-engineer** | Compiler Engineering | `LLVM IR / Runtime Performance` | 2026-10-28 12:40 UTC | `VERIFIED` |
@@ -198,15 +202,15 @@ When you submit a handshake, a GitHub Action validates your transmission, append
 
 ---
 
-### 05 / contribution activity
+### 05 / annual pulse
 
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: no-preference)" srcset="assets/activity-shape-dark-anim.svg">
-  <source media="(prefers-color-scheme: light) and (prefers-reduced-motion: no-preference)" srcset="assets/activity-shape-light-anim.svg">
-  <source media="(prefers-color-scheme: dark)" srcset="assets/activity-shape-dark-static.svg">
-  <source media="(prefers-color-scheme: light)" srcset="assets/activity-shape-light-static.svg">
-  <img src="assets/activity-shape-light-static.svg" width="100%" alt="Monthly contribution pulse across the last twelve months">
+  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: no-preference)" srcset="assets/apple-bars-dark-anim.svg">
+  <source media="(prefers-color-scheme: light) and (prefers-reduced-motion: no-preference)" srcset="assets/apple-bars-light-anim.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/apple-bars-dark-static.svg">
+  <source media="(prefers-color-scheme: light)" srcset="assets/apple-bars-light-static.svg">
+  <img src="assets/apple-bars-light-static.svg" width="100%" alt="Monthly contribution pulse across the last twelve months">
 </picture>
 </p>
 
@@ -220,7 +224,7 @@ Filter repositories by verified language:
 
 ---
 
-### 06 / transmission channels
+### 06 / priority inquiry
 
 The fastest way in is a [prefilled ticket](https://github.com/kicode01/kicode01/issues/new?title=Hi%20Kian&body=Where%20I%20found%20you%3A%0A%0AWhat%20you%27re%20working%20on%3A%0A%0A) — it opens with context and lands directly in my checked notifications.
 
@@ -230,6 +234,6 @@ Portfolio: **[kicode01.github.io](https://kicode01.github.io/)**
 
 <p align="center">
   <sub>
-    Vector assets generated from the GitHub API by <a href="./generate.py"><code>generate.py</code></a> — hand-crafted SVG, animated via CSS, theme-aware via <code>prefers-color-scheme</code>, and accessible via <code>prefers-reduced-motion</code>. Powered by GitHub Actions IssueOps. Zero third-party stat cards, zero GIFs, zero screenshots.
+    Vector assets generated from the GitHub API by <a href="./generate.py"><code>generate.py</code></a> — hand-crafted SVG in Apple Space Black & Titanium, animated via CSS, theme-aware via <code>prefers-color-scheme</code>, and accessible via <code>prefers-reduced-motion</code>. Powered by GitHub Actions IssueOps. Zero third-party stat cards, zero GIFs, zero screenshots.
   </sub>
 </p>
