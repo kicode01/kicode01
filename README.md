@@ -154,11 +154,11 @@ Recent commits to this profile repository:
 
 <!-- log:start -->
 ```
+dae3a95  chore: merge remote refresh bot stats
+dafe908  feat: complete palette and design transformation — Electric Cyber-Indigo & Neon Cyan (Linear / Frontier AI Lab aesthetic)
 85c233b  chore: refresh profile assets
 e7955fe  feat: complete architectural overhaul — Silicon Die Floorplan, Dynamic Status Island, Native JIT Disassembly Benchmark, and Modular System Specs
 86a3eef  chore: refresh profile assets
-24ac1f3  chore: merge remote refresh bot stats into main
-80ece29  feat: hardware oscilloscope logic analyzer waveforms, executive recruiter triage matrix, and vector pipeline animation
 ```
 <!-- log:end -->
 
