@@ -256,41 +256,40 @@ def hero(t, motion=True):
     d3 = "M0 150 Q320 80, 640 150 T1280 150"
     o.append(f'<path d="{d3}" stroke="{P["purple"]}" stroke-width="1.2" fill="none" opacity="0.45" class="flow_slow"/>')
 
-    # Central Kinetic Gyroscope Reticle (Behind typography)
-    gx, gy = W / 2, 145
-    o.append(f'<circle cx="{gx}" cy="{gy}" r="75" fill="url(#gyro_glow)"/>')
+    # Central Kinetic Gyroscope Reticle with [ K ] Monogram Emblem
+    gx, gy = W / 2, 88
+    o.append(f'<circle cx="{gx}" cy="{gy}" r="45" fill="url(#gyro_glow)"/>')
     # Outer Rotating Ticks Ring
-    o.append(f'<circle cx="{gx}" cy="{gy}" r="70" stroke="{P["rule_glow"]}" stroke-width="1.2" stroke-dasharray="4 8" fill="none" class="spin"/>')
-    # Counter-Rotating Intermediate Ring with Orbital Photons
+    o.append(f'<circle cx="{gx}" cy="{gy}" r="42" stroke="{P["rule_glow"]}" stroke-width="1.2" stroke-dasharray="3 6" fill="none" class="spin"/>')
+    # Counter-Rotating Ring with Orbital Photons
     o.append(f'<g class="spin_rev">')
-    o.append(f'<circle cx="{gx}" cy="{gy}" r="50" stroke="{P["accent"]}" stroke-width="1" stroke-dasharray="20 10 5 10" fill="none" opacity="0.7"/>')
-    o.append(f'<circle cx="{gx+50}" cy="{gy}" r="3" fill="{P["accent"]}"/>')
-    o.append(f'<circle cx="{gx-50}" cy="{gy}" r="3" fill="{P["accent_bright"]}"/>')
+    o.append(f'<circle cx="{gx}" cy="{gy}" r="32" stroke="{P["accent"]}" stroke-width="1" stroke-dasharray="14 8 4 8" fill="none" opacity="0.7"/>')
+    o.append(f'<circle cx="{gx+32}" cy="{gy}" r="2.5" fill="{P["accent"]}"/>')
+    o.append(f'<circle cx="{gx-32}" cy="{gy}" r="2.5" fill="{P["accent_bright"]}"/>')
     o.append(f'</g>')
-    # Inner Fast Hexagonal Core
-    o.append(f'<g class="spin_fast">')
-    o.append(f'<polygon points="{gx},{gy-24} {gx+21},{gy-12} {gx+21},{gy+12} {gx},{gy+24} {gx-21},{gy+12} {gx-21},{gy-12}" stroke="{P["accent_bright"]}" stroke-width="1" fill="none" opacity="0.5"/>')
-    o.append(f'</g>')
+    # Center Illuminated Monogram Badge
+    o.append(f'<circle cx="{gx}" cy="{gy}" r="16" fill="{P["card"]}" stroke="{P["accent"]}" stroke-width="1.4" class="pulse"/>')
+    o.append(text(gx, gy + 5, "K", size=13, fill=P["accent_bright"], weight="900", family=MONO, anchor="middle"))
 
     # Top Status Pill
     pill_w = 400
-    o.append(f'<rect x="{W/2 - pill_w/2}" y="24" width="{pill_w}" height="26" rx="13" fill="{P["card"]}" stroke="{P["rule_glow"]}" stroke-width="1"/>')
-    o.append(f'<circle cx="{W/2 - pill_w/2 + 18}" cy="37" r="3.5" fill="{P["green"]}" class="pulse"/>')
-    o.append(text(W/2 - pill_w/2 + 30, 41, "KIAN B. // SYSTEMS & COMPILERS ARCHITECTURE", size=9.5, fill=P["text"], weight="700", family=MONO, ls=1.1))
-    o.append(text(W/2 + pill_w/2 - 18, 41, "ACTIVE", size=9, fill=P["green"], weight="800", family=MONO, anchor="end"))
+    o.append(f'<rect x="{W/2 - pill_w/2}" y="18" width="{pill_w}" height="24" rx="12" fill="{P["card"]}" stroke="{P["rule_glow"]}" stroke-width="1"/>')
+    o.append(f'<circle cx="{W/2 - pill_w/2 + 16}" cy="30" r="3.5" fill="{P["green"]}" class="pulse"/>')
+    o.append(text(W/2 - pill_w/2 + 28, 34, "KIAN B. // SYSTEMS & COMPILERS ARCHITECTURE", size=9, fill=P["text"], weight="700", family=MONO, ls=1.1))
+    o.append(text(W/2 + pill_w/2 - 16, 34, "ACTIVE", size=9, fill=P["green"], weight="800", family=MONO, anchor="end"))
 
     # Display Typography
-    o.append(text(W/2, 134, "KIAN B.", size=46, fill=P["text"], weight="900", family=SANS, anchor="middle", ls=6.0))
+    o.append(text(W/2, 146, "KIAN B.", size=38, fill=P["text"], weight="900", family=SANS, anchor="middle", ls=6.0))
     # Glowing Laser Underline with Sweeping Comet Head
-    o.append(f'<line x1="{W/2 - 200}" y1="148" x2="{W/2 + 200}" y2="148" stroke="{P["rule_glow"]}" stroke-width="1"/>')
-    o.append(f'<line x1="{W/2 - 180}" y1="148" x2="{W/2 + 180}" y2="148" stroke="{P["accent"]}" stroke-width="2" class="flow_fast"/>')
-    o.append(f'<circle cx="{W/2}" cy="148" r="4" fill="{P["accent_bright"]}" class="laser_head"/>')
+    o.append(f'<line x1="{W/2 - 180}" y1="158" x2="{W/2 + 180}" y2="158" stroke="{P["rule_glow"]}" stroke-width="1"/>')
+    o.append(f'<line x1="{W/2 - 160}" y1="158" x2="{W/2 + 160}" y2="158" stroke="{P["accent"]}" stroke-width="2" class="flow_fast"/>')
+    o.append(f'<circle cx="{W/2}" cy="158" r="4" fill="{P["accent_bright"]}" class="laser_head"/>')
 
     # Subtitle
-    o.append(text(W/2, 178, "PRECISION COMPILERS · EMBEDDED SILICON · ZERO-ALLOC APPLIED AI",
-                  size=11, fill=P["dim"], weight="700", family=MONO, anchor="middle", ls=1.8))
-    o.append(text(W/2, 202, "Where abstraction has a measurable cost: know what the layer below actually costs.",
-                  size=13, fill=P["micro"], weight="400", family=SANS, anchor="middle", ls=-0.1))
+    o.append(text(W/2, 184, "PRECISION COMPILERS · EMBEDDED SILICON · ZERO-ALLOC APPLIED AI",
+                  size=10.5, fill=P["dim"], weight="700", family=MONO, anchor="middle", ls=1.6))
+    o.append(text(W/2, 204, "Where abstraction has a measurable cost: know what the layer below actually costs.",
+                  size=12.5, fill=P["micro"], weight="400", family=SANS, anchor="middle", ls=-0.1))
 
     # Bottom 4 Kinetic Graphic Gauges
     o.append(rule(48, 230, W - 48, 230, P["rule"]))
