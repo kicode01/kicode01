@@ -158,11 +158,11 @@ Recent commits to this profile repository:
 
 <!-- log:start -->
 ```
+bb8a1be  feat: motion-first kinetic graphics overhaul (waveforms, radar sweep, live topology)
 9da6654  chore: refresh profile assets
 1397b09  feat: Precision Systems Architecture identity (Obsidian & Laser Cobalt)
 5092902  chore: refresh profile assets
 7deb6c0  fix: resolve SVG typographical glyph encoding and sync log state
-63fc269  chore: refresh profile assets
 ```
 <!-- log:end -->
 
