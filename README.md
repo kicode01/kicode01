@@ -131,7 +131,7 @@
 </p>
 
 <!-- signal:start -->
-**293 of 386** contributions landed in October alone. Flat for months, then it isn't.
+**304 of 397** contributions landed in October alone. Flat for months, then it isn't.
 <!-- signal:end -->
 
 Filter by language:
@@ -148,8 +148,8 @@ Filter by language:
 
 <!-- pulse:start -->
 ```
+blackmamba-lang    6df9231  2026-10-29  feat(v1.2.0): universal C-ABI FFI, dynamic IAT linker, and C header bindgen
 voltsense-iot      ec3e8f7  2026-10-27  fix(demo): resolve black screen on app collapse/expand by eliminating WebGL buffer thrashing and adding context recovery
-blackmamba-lang    19b23fb  2026-10-25  feat: Black Mamba v1.1.0 — Dynamic C3 OOP, Stack-Unwinding Exceptions & Native TLS 1.3 / SQL / GUI Ecosystem
 typenscrape        ec8d20d  2026-10-24  Bring the repository up to the current build
 meemomini          0af15f7  2026-10-24  Publish meemomini: browser photo booth PWA
 klyph-txt          148b6e7  2026-10-23  chore: track logo-design-skill directly instead of embedded submodule
@@ -161,11 +161,11 @@ Recent commits to this profile repository:
 
 <!-- log:start -->
 ```
+0179b87  feat: Next-Gen Apple-Precision Bento Console (Kinetic SVG Cards, Gyroscopic Reactor, 0 Text Clutter)
 9d0e522  chore: refresh profile assets
 59adb5e  feat: Interactive Visual Console layout (zero text clutter, interactive modules, personal cybernetic crest)
 4bdcaed  fix: robust direct raw picture URLs and clean theme media queries
 5fa0271  chore: refresh profile assets
-bb8a1be  feat: motion-first kinetic graphics overhaul (waveforms, radar sweep, live topology)
 ```
 <!-- log:end -->
 
