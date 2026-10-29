@@ -1,63 +1,61 @@
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: no-preference)" srcset="assets/status-island-dark-anim.svg">
-  <source media="(prefers-color-scheme: light) and (prefers-reduced-motion: no-preference)" srcset="assets/status-island-light-anim.svg">
-  <source media="(prefers-color-scheme: dark)" srcset="assets/status-island-dark-static.svg">
-  <source media="(prefers-color-scheme: light)" srcset="assets/status-island-light-static.svg">
-  <img src="assets/status-island-light-static.svg" width="100%" alt="Kian B. — Computer Engineering · Silicon to Model">
+  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: no-preference)" srcset="assets/hero-linear-dark-anim.svg">
+  <source media="(prefers-color-scheme: light) and (prefers-reduced-motion: no-preference)" srcset="assets/hero-linear-light-anim.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/hero-linear-dark-static.svg">
+  <source media="(prefers-color-scheme: light)" srcset="assets/hero-linear-light-static.svg">
+  <img src="assets/hero-linear-light-static.svg" width="100%" alt="Kian B. — Computer Engineering · Silicon to Model">
 </picture>
 </p>
 
 <p align="center">
-  <a href="#01--silicon-die-floorplan"><code>[01_CORE_DIE]</code></a> &nbsp;·&nbsp;
-  <a href="#02--native-jit-disassembly--empirical-proof"><code>[02_DISASSEMBLY_BENCH]</code></a> &nbsp;·&nbsp;
-  <a href="#03--modular-system-specifications"><code>[03_SYSTEM_SPECS]</code></a> &nbsp;·&nbsp;
-  <a href="#04--event-driven-issueops-telemetry"><code>[04_ISSUEOPS_RADAR]</code></a> &nbsp;·&nbsp;
-  <a href="#05--annual-contribution-pulse"><code>[05_PULSE]</code></a> &nbsp;·&nbsp;
-  <a href="#06--priority-transmission"><code>[06_CONTACT]</code></a>
+  <a href="#01--system-architecture-matrix"><code>[01_ARCHITECTURE]</code></a> &nbsp;·&nbsp;
+  <a href="#02--empirical-benchmark-telemetry"><code>[02_BENCHMARKS]</code></a> &nbsp;·&nbsp;
+  <a href="#03--engineering-specifications"><code>[03_SPECS]</code></a> &nbsp;·&nbsp;
+  <a href="#04--event-driven-issueops-radar"><code>[04_ISSUEOPS]</code></a> &nbsp;·&nbsp;
+  <a href="#05--contribution-activity"><code>[05_PULSE]</code></a> &nbsp;·&nbsp;
+  <a href="#06--transmission-channels"><code>[06_CONTACT]</code></a>
 </p>
 
-> [!NOTE]
+> [!TIP]
 > **Engineering Thesis**: I work where abstraction has a measurable cost — a compiler that has to beat the interpreter it replaces, firmware on an ESP32, an LLM feature that has to be worth its latency. Same instinct in all three: know what the layer below actually costs.
 
 ---
 
-### 01 / silicon die floorplan
-
-A heterogeneous architecture mapping across four coordinated engineering layers — from raw silicon execution memory up to stochastic model routing:
+### 01 / system architecture matrix
 
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: no-preference)" srcset="assets/floorplan-dark-anim.svg">
-  <source media="(prefers-color-scheme: light) and (prefers-reduced-motion: no-preference)" srcset="assets/floorplan-light-anim.svg">
-  <source media="(prefers-color-scheme: dark)" srcset="assets/floorplan-dark-static.svg">
-  <source media="(prefers-color-scheme: light)" srcset="assets/floorplan-light-static.svg">
-  <img src="assets/floorplan-light-static.svg" width="100%" alt="Silicon Processor Die Floorplan">
+  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: no-preference)" srcset="assets/bento-architecture-dark-anim.svg">
+  <source media="(prefers-color-scheme: light) and (prefers-reduced-motion: no-preference)" srcset="assets/bento-architecture-light-anim.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/bento-architecture-dark-static.svg">
+  <source media="(prefers-color-scheme: light)" srcset="assets/bento-architecture-light-static.svg">
+  <img src="assets/bento-architecture-light-static.svg" width="100%" alt="System Capabilities & Architecture Matrix">
 </picture>
 </p>
 
-- **Core 0 (JIT & Compilers):** Direct x86-64 machine execution via `mmap(PROT_EXEC)`, eliminating garbage collection pauses entirely and compiling recursive tail-calls from 5M frames down to zero.
-- **Core 1 (Adaptive Applied AI):** Fault-tolerant cascade orchestration — Groq (Llama 3 @ 420ms) degrades gracefully to Gemini on 429 rate limits, with 50k+ grammar rules and closed-loop beam search scoring.
-- **Core 2 (On-Device Vision):** Client-side MediaPipe `ImageSegmenter` in WebAssembly — 18ms inference latency with zero image bytes exfiltrated to external servers.
-- **Core 3 (Edge Firmware):** Memory-bounded C++ on ESP32 sampling room electrical telemetry, with zero-secret FCM push routing through serverless edge functions.
+- **01 · Native Compiler Runtime:** Pure-Python compiler emitting LLVM 18 IR and direct x86-64 machine instructions via `mmap(PROT_EXEC)`. Implements dynamic C3 Diamond MRO linearization (0.42ms) and collapses 5,000,000 tail-call frames to zero.
+- **02 · Adaptive Applied AI:** Fault-tolerant multi-tier LLM cascade — Groq (Llama 3 @ 420ms) degrades gracefully to Gemini on 429 rate limits, with 16-chunk IndexedDB paging to eliminate OOM on resource-constrained devices.
+- **03 · On-Device Computer Vision:** MediaPipe `ImageSegmenter` running in client WebAssembly — 18ms inference latency with zero image frames exfiltrated to cloud servers.
+- **04 · Edge Firmware & Telemetry:** Memory-bounded C++ on ESP32 sampling load sensors, delegating FCM push credentials to serverless functions so the physical hardware never stores secrets.
 
 ---
 
-### 02 / native jit disassembly & empirical proof
+### 02 / empirical benchmark telemetry
 
-Claims are cheap. This is the compiler's own recursive kernel (`fib32`) disassembled directly from executable memory and benchmarked against CPython 3.14 on the same host:
+Claims are cheap. This is Black Mamba's benchmark suite executed against CPython 3.14 on identical host hardware:
 
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: no-preference)" srcset="assets/disassembly-dark-anim.svg">
-  <source media="(prefers-color-scheme: light) and (prefers-reduced-motion: no-preference)" srcset="assets/disassembly-light-anim.svg">
-  <source media="(prefers-color-scheme: dark)" srcset="assets/disassembly-dark-static.svg">
-  <source media="(prefers-color-scheme: light)" srcset="assets/disassembly-light-static.svg">
-  <img src="assets/disassembly-light-static.svg" width="100%" alt="Disassembly & Empirical Speedup Diff">
+  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: no-preference)" srcset="assets/benchmark-matrix-dark-anim.svg">
+  <source media="(prefers-color-scheme: light) and (prefers-reduced-motion: no-preference)" srcset="assets/benchmark-matrix-light-anim.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/benchmark-matrix-dark-static.svg">
+  <source media="(prefers-color-scheme: light)" srcset="assets/benchmark-matrix-light-static.svg">
+  <img src="assets/benchmark-matrix-light-static.svg" width="100%" alt="Benchmark Telemetry vs CPython 3.14">
 </picture>
 </p>
 
-| Benchmark Kernel | CPython 3.14 (Interpreted) | Black Mamba (Native JIT) | Speedup Ratio | Memory Footprint |
+| Benchmark Kernel | CPython 3.14 (Interpreted) | Black Mamba (Native JIT) | Speedup Factor | Memory Footprint |
 | :--- | :--- | :--- | :--- | :--- |
 | **`fib(32)`** | 288.62 ms | **11.08 ms** | **26.1x FASTER** | 14.2 MB → **1.1 MB** |
 | **`collatz(40k)`** | 227.84 ms | **8.29 ms** | **27.5x FASTER** | 12.8 MB → **0.9 MB** |
@@ -66,7 +64,7 @@ Claims are cheap. This is the compiler's own recursive kernel (`fib32`) disassem
 
 ---
 
-### 03 / modular system specifications
+### 03 / engineering specifications
 
 <details>
 <summary><b>SPEC-01 // NATIVE COMPILERS & JIT RUNTIMES — Black Mamba v1.1.0</b></summary>
@@ -74,9 +72,9 @@ Claims are cheap. This is the compiler's own recursive kernel (`fib32`) disassem
 <br>
 
 - **Repository:** [`kicode01/blackmamba-lang`](https://github.com/kicode01/blackmamba-lang)
-- **Architecture:** Pythonic syntax, C execution semantics, zero borrow-checker runtime penalty.
-- **Frontend & Inference:** Indentation desugaring AST, Hindley-Milner static type inference, dynamic C3 multiple-inheritance linearization resolving diamond hierarchies in 0.42ms.
-- **Codegen & Linker:** Emits LLVM 18 IR, zero-dependency pure-Python PE32+ and ELF64 linkers, and direct x86-64 executable memory pages (`mmap(PROT_READ | PROT_WRITE | PROT_EXEC)`). Emits 1.7 KB WebAssembly modules.
+- **Execution Model:** Pythonic syntax, C runtime performance, zero borrow-checker overhead.
+- **Inference & Linearization:** Indentation desugaring AST, Hindley-Milner static type inference, dynamic C3 multiple-inheritance linearization resolving diamond hierarchies in 0.42ms.
+- **Codegen & Target:** Emits LLVM 18 IR, zero-dependency pure-Python PE32+ and ELF64 linkers, and direct x86-64 executable memory pages (`mmap(PROT_READ | PROT_WRITE | PROT_EXEC)`). Emits 1.7 KB WebAssembly modules.
 - **Native Standard Library:** Structured exception stack unwinding, native TLS 1.3 cryptographic engine, relational SQL engine, and 24-bit RGB GUI framework.
 
 `Python · x86-64 · LLVM IR · C · WebAssembly · TLS 1.3 · SQL`
@@ -88,7 +86,7 @@ Claims are cheap. This is the compiler's own recursive kernel (`fib32`) disassem
 
 <br>
 
-- **TypenScrape ([Repo](https://github.com/kicode01/typenscrape)):** Offline-first semantic recipe generation. Cascades Groq (Llama 3 @ 420ms) to Gemini on 429 rate limits so degraded states return useful data instead of throwing errors. Bounded memory consumption via sixteen-chunk IndexedDB paging to survive mobile device RAM limits.
+- **TypenScrape ([Repo](https://github.com/kicode01/typenscrape)):** Offline-first semantic recipe generation. Cascades Groq (Llama 3 @ 420ms) to Gemini on 429 rate limits so degraded states return useful data instead of breaking. Bounded memory consumption via sixteen-chunk IndexedDB paging to survive mobile device RAM limits.
 - **meemomini ([Repo](https://github.com/kicode01/meemomini)):** Browser photo booth PWA running on-device computer vision. Employs MediaPipe's `ImageSegmenter` compiled to WASM — background removal runs in 18ms with zero camera frames ever leaving the client machine. Local WebGL canvas filters, offline PWA caching, and client-side GIF/MP4 encoding.
 
 `React 18 · TypeScript · MediaPipe WASM · Groq Llama 3 · Gemini · IndexedDB · PWA`
@@ -121,21 +119,21 @@ Claims are cheap. This is the compiler's own recursive kernel (`fib32`) disassem
 </details>
 
 <details>
-<summary><b>SPEC-05 // EXECUTIVE TRIAGE & RECRUITER DOSSIER</b></summary>
+<summary><b>SPEC-05 // RECRUITER & LEADERSHIP DOSSIER</b></summary>
 
 <br>
 
-> [!TIP]
-> **Hiring Manager & Engineering Director Triage**
+> [!NOTE]
+> **Engineering Director & Technical Recruiter Summary**
 > - **Target Roles:** Compiler / Runtime Engineer, Applied AI Systems Engineer, Embedded / Edge Systems Engineer.
-> - **Vertical Reach:** From x86-64 assembly and ESP32 C++ firmware up to Groq/Gemini cascade routers and React 19 / Next.js 16 production interfaces.
+> - **Full-Stack Verticality:** From x86-64 assembly and ESP32 C++ firmware up to Groq/Gemini cascade routers and React 19 / Next.js 16 production interfaces.
 > - **Empirical Verification:** Every metric shown here is verifiable through public repositories, GitHub Action runs, and commit history.
-> - **Availability:** Open to global remote, international, and on-site roles.
+> - **Availability:** Open to global remote, international, and on-site opportunities.
 
 </details>
 
 <details>
-<summary><b>SPEC-06 // LIVE REPOSITORY PULSE & GIT COMMIT LOG</b></summary>
+<summary><b>SPEC-06 // LIVE ECOSYSTEM COMMIT PULSE</b></summary>
 
 <br>
 
@@ -156,11 +154,11 @@ Recent commits to this profile repository:
 
 <!-- log:start -->
 ```
+85c233b  chore: refresh profile assets
+e7955fe  feat: complete architectural overhaul — Silicon Die Floorplan, Dynamic Status Island, Native JIT Disassembly Benchmark, and Modular System Specs
+86a3eef  chore: refresh profile assets
 24ac1f3  chore: merge remote refresh bot stats into main
 80ece29  feat: hardware oscilloscope logic analyzer waveforms, executive recruiter triage matrix, and vector pipeline animation
-8ee37b5  chore: refresh profile assets
-797f2f8  feat: event-driven IssueOps telemetry state machine, compiler architecture pipeline HUD, and cross-repo pulse
-2421bd2  Refresh the overview for the two newly published repos
 ```
 <!-- log:end -->
 
@@ -168,7 +166,7 @@ Recent commits to this profile repository:
 
 ---
 
-### 04 / event-driven issueops telemetry
+### 04 / event-driven issueops radar
 
 This profile runs an **autonomous event-driven state machine** powered entirely by GitHub Actions IssueOps. You can transmit a live handshake signal directly through GitHub without external servers or databases.
 
@@ -176,17 +174,17 @@ When you submit a handshake, a GitHub Action validates your transmission, append
 
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: no-preference)" srcset="assets/telemetry-dark-anim.svg">
-  <source media="(prefers-color-scheme: light) and (prefers-reduced-motion: no-preference)" srcset="assets/telemetry-light-anim.svg">
-  <source media="(prefers-color-scheme: dark)" srcset="assets/telemetry-dark-static.svg">
-  <source media="(prefers-color-scheme: light)" srcset="assets/telemetry-light-static.svg">
-  <img src="assets/telemetry-light-static.svg" width="100%" alt="Real-time IssueOps Telemetry Radar">
+  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: no-preference)" srcset="assets/telemetry-radar-dark-anim.svg">
+  <source media="(prefers-color-scheme: light) and (prefers-reduced-motion: no-preference)" srcset="assets/telemetry-radar-light-anim.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/telemetry-radar-dark-static.svg">
+  <source media="(prefers-color-scheme: light)" srcset="assets/telemetry-radar-light-static.svg">
+  <img src="assets/telemetry-radar-light-static.svg" width="100%" alt="Real-time IssueOps Telemetry Radar">
 </picture>
 </p>
 
 <p align="center">
   <a href="https://github.com/kicode01/kicode01/issues/new?template=telemetry_ping.yml&title=%5BTELEMETRY+PING%5D+from+%40your-handle">
-    <img src="https://img.shields.io/badge/⚡_TRANSMIT_TELEMETRY_HANDSHAKE-CLICK_TO_TRIGGER-amber?style=for-the-badge&logo=github&labelColor=08090b&color=ffa028" alt="Transmit Handshake">
+    <img src="https://img.shields.io/badge/⚡_TRANSMIT_TELEMETRY_HANDSHAKE-CLICK_TO_TRIGGER-cyan?style=for-the-badge&logo=github&labelColor=050814&color=06b6d4" alt="Transmit Handshake">
   </a>
 </p>
 
@@ -200,15 +198,15 @@ When you submit a handshake, a GitHub Action validates your transmission, append
 
 ---
 
-### 05 / annual contribution pulse
+### 05 / contribution activity
 
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: no-preference)" srcset="assets/bars-dark-anim.svg">
-  <source media="(prefers-color-scheme: light) and (prefers-reduced-motion: no-preference)" srcset="assets/bars-light-anim.svg">
-  <source media="(prefers-color-scheme: dark)" srcset="assets/bars-dark-static.svg">
-  <source media="(prefers-color-scheme: light)" srcset="assets/bars-light-static.svg">
-  <img src="assets/bars-light-static.svg" width="100%" alt="Monthly contribution pulse across the last twelve months">
+  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: no-preference)" srcset="assets/activity-shape-dark-anim.svg">
+  <source media="(prefers-color-scheme: light) and (prefers-reduced-motion: no-preference)" srcset="assets/activity-shape-light-anim.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/activity-shape-dark-static.svg">
+  <source media="(prefers-color-scheme: light)" srcset="assets/activity-shape-light-static.svg">
+  <img src="assets/activity-shape-light-static.svg" width="100%" alt="Monthly contribution pulse across the last twelve months">
 </picture>
 </p>
 
@@ -222,7 +220,7 @@ Filter repositories by verified language:
 
 ---
 
-### 06 / priority transmission
+### 06 / transmission channels
 
 The fastest way in is a [prefilled ticket](https://github.com/kicode01/kicode01/issues/new?title=Hi%20Kian&body=Where%20I%20found%20you%3A%0A%0AWhat%20you%27re%20working%20on%3A%0A%0A) — it opens with context and lands directly in my checked notifications.
 
