@@ -1,132 +1,140 @@
-<!-- ===================================================================== -->
-<!-- KIAN B. // INTERACTIVE VISUAL SYSTEMS CONSOLE                          -->
-<!-- Zero text clutter · 100% Vector Motion Graphics · Dynamic IssueOps     -->
-<!-- ===================================================================== -->
-
-<!-- MASTER KINETIC HERO CONSOLE & GYROSCOPIC REACTOR -->
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-hero-dark-anim.svg">
-  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-hero-light-anim.svg">
-  <img src="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-hero-dark-anim.svg" width="100%" alt="KIAN B. // Systems Architect & Compiler Engineer">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-hero-dark-static.svg">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-hero-light-static.svg">
+  <img src="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-hero-light-static.svg" width="100%" alt="Kian — Computer Engineering. Systems, Compilers & Applied AI.">
 </picture>
 </p>
 
-<!-- 2x2 INTERACTIVE HARDWARE SHOWCASE BENTO MATRIX -->
-<table width="100%" border="0" cellspacing="12" cellpadding="0">
+<sub>**Focus:** Compilers, firmware & applied AI &nbsp;·&nbsp; **Portfolio:** [kicode01.github.io](https://kicode01.github.io/) &nbsp;·&nbsp; **Contact:** [Open a prefilled issue](https://github.com/kicode01/kicode01/issues/new?title=Hi%20Kian&body=Where%20I%20found%20you%3A%0A%0AWhat%20you%27re%20working%20on%3A%0A%0A)</sub>
+
+---
+
+<table width="100%">
   <tr>
-    <td width="50%" align="center" valign="top">
-      <a href="https://github.com/kicode01/blackmamba-lang">
+    <td width="50%" valign="top">
+      <a href="https://github.com/kicode01/blackmamba-lang" title="Black Mamba v1.1.0 — Python syntax compiled to x86-64 machine code &amp; 1.7 KB WASM (26.1x faster than CPython 3.14). Click to open repository.">
         <picture>
-          <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/card-mamba-dark-anim.svg">
-          <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/card-mamba-light-anim.svg">
-          <img src="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/card-mamba-dark-anim.svg" width="100%" alt="Black Mamba JIT Engine">
+          <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/card-mamba-dark-static.svg">
+          <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/card-mamba-light-static.svg">
+          <img src="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/card-mamba-light-static.svg" width="100%" alt="M-01 Black Mamba Compiler">
         </picture>
       </a>
+      <details>
+        <summary><code>Inspect M-01 — compiler internals &amp; benchmarks</code></summary>
+        <br>
+        <sub><b>Architecture:</b> Indentation-sensitive lexer/parser, dynamic C3 diamond multiple inheritance (0.42 ms linearization), Hindley-Milner static type propagation, LLVM 18 IR emitter with tail-call collapse (5M frames to 0), direct <code>mmap</code> x86-64 JIT, and zero-dependency PE32+ / ELF64 / 1.7 KB WASM linkers.</sub><br><br>
+        <sub><b>Standard Library:</b> Pure-native TLS 1.3, relational SQL engine, and 24-bit RGB GUI.</sub><br><br>
+        <sub><a href="https://github.com/kicode01/blackmamba-lang">Repository ↗</a></sub>
+      </details>
     </td>
-    <td width="50%" align="center" valign="top">
-      <a href="https://github.com/kicode01/typenscrape">
+    <td width="50%" valign="top">
+      <a href="https://voltsense-iot.vercel.app" title="VoltSense IoT — ESP32 load &amp; occupancy telemetry with air-gapped push credentials. Click to open live operator console.">
         <picture>
-          <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/card-typenscrape-dark-anim.svg">
-          <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/card-typenscrape-light-anim.svg">
-          <img src="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/card-typenscrape-dark-anim.svg" width="100%" alt="TypenScrape AI Cascade">
+          <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/card-voltsense-dark-static.svg">
+          <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/card-voltsense-light-static.svg">
+          <img src="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/card-voltsense-light-static.svg" width="100%" alt="M-02 VoltSense IoT">
         </picture>
       </a>
+      <details>
+        <summary><code>Inspect M-02 — firmware isolation &amp; live deployment</code></summary>
+        <br>
+        <sub><b>Architecture:</b> Three separated layers — memory-bounded C++ on an ESP32 sampling real electrical load and occupancy, Vercel serverless functions that hold Firebase Cloud Messaging credentials so the hardware flash never contains a secret key, and a React 19 operator PWA with per-port relay switching.</sub><br><br>
+        <sub><a href="https://voltsense-iot.vercel.app">Live Operator PWA ↗</a> &nbsp;·&nbsp; <a href="https://github.com/kicode01/voltsense-iot">Repository ↗</a></sub>
+      </details>
     </td>
   </tr>
   <tr>
-    <td width="50%" align="center" valign="top">
-      <a href="https://voltsense-iot.vercel.app">
+    <td width="50%" valign="top">
+      <a href="https://github.com/kicode01/typenscrape" title="TypenScrape — Offline-first recipe engine with Groq (Llama 3) to Gemini failover and 16-chunk IndexedDB streaming. Click to open repository.">
         <picture>
-          <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/card-voltsense-dark-anim.svg">
-          <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/card-voltsense-light-anim.svg">
-          <img src="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/card-voltsense-dark-anim.svg" width="100%" alt="VoltSense IoT Firmware">
+          <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/card-typenscrape-dark-static.svg">
+          <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/card-typenscrape-light-static.svg">
+          <img src="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/card-typenscrape-light-static.svg" width="100%" alt="M-03 TypenScrape">
         </picture>
       </a>
+      <details>
+        <summary><code>Inspect M-03 — failover routing &amp; memory bounds</code></summary>
+        <br>
+        <sub><b>Architecture:</b> Queries route to Groq (Llama 3, ~420 ms) first and fail over automatically to Gemini on HTTP 429 rate limits. The offline catalog is split into 16 sequential chunks streamed one at a time into IndexedDB so mobile browsers never spike peak heap memory.</sub><br><br>
+        <sub><a href="https://github.com/kicode01/typenscrape">Repository ↗</a></sub>
+      </details>
     </td>
-    <td width="50%" align="center" valign="top">
-      <a href="https://github.com/kicode01/meemomini">
+    <td width="50%" valign="top">
+      <a href="https://github.com/kicode01/meemomini" title="meemomini — Browser photo booth running MediaPipe ImageSegmenter in WebAssembly (~18 ms per frame, zero server uploads). Click to open repository.">
         <picture>
-          <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/card-meemomini-dark-anim.svg">
-          <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/card-meemomini-light-anim.svg">
-          <img src="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/card-meemomini-dark-anim.svg" width="100%" alt="MeeMoMini On-Device Vision">
+          <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/card-meemomini-dark-static.svg">
+          <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/card-meemomini-light-static.svg">
+          <img src="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/card-meemomini-light-static.svg" width="100%" alt="M-04 meemomini">
         </picture>
       </a>
+      <details>
+        <summary><code>Inspect M-04 — on-device WASM vision pipeline</code></summary>
+        <br>
+        <sub><b>Architecture:</b> MediaPipe's <code>ImageSegmenter</code> runs entirely in client-side WebAssembly (~18 ms/frame). No camera frame ever leaves the device. Includes WebGL compositing, export to still/GIF/MP4, and local QR handoff as an installable PWA.</sub><br><br>
+        <sub><a href="https://github.com/kicode01/meemomini">Repository ↗</a></sub>
+      </details>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <details>
+        <summary><code>M-05 / klyph-txt</code> — closed-loop NLP &amp; beam-search scoring</summary>
+        <br>
+        <sub>Nine paraphrase modes built on dependency-tree restructuring, 50,000+ grammar rules via LanguageTool and SymSpell, WordNet 3.1 synonym ranking, and a closed-loop beam search that scores every candidate before emitting output.</sub><br><br>
+        <sub><code>Python · spaCy · AST · LanguageTool · WordNet · LLM</code> &nbsp;·&nbsp; <a href="https://github.com/kicode01/klyph-txt">Repository ↗</a></sub>
+      </details>
+    </td>
+    <td width="50%" valign="top">
+      <details>
+        <summary><code>M-06 / shim-platform</code> — verifiable credentials &amp; font-metric layout</summary>
+        <br>
+        <sub>Bulk event credential issuance where every certificate carries a unique ID and QR code resolving to a public verification endpoint with audit logging. Template text is fitted against real font kerning tables rather than estimated.</sub><br><br>
+        <sub><code>Next.js 16 · React 19 · Prisma · jsPDF · QR</code> &nbsp;·&nbsp; <a href="https://shim-hq.vercel.app">Live ↗</a> &nbsp;·&nbsp; <a href="https://github.com/kicode01/shim-platform">Repository ↗</a></sub>
+      </details>
     </td>
   </tr>
 </table>
 
-<br>
+---
 
-<!-- INTERACTIVE VISUAL MODULE 01: DIE TOPOLOGY -->
+### Interactive Specification Plates
+
+<sub>Click any plate below to unfold its full-width schematic, benchmark data, or live repository feed.</sub>
+
 <details open>
-<summary><b>[ ⚡ 01 // COMPUTATIONAL FABRIC TOPOLOGY ]</b> <i>(Click to toggle live schematic)</i></summary>
+<summary><code>01 / benchmark suite</code> — Black Mamba JIT vs. CPython 3.14 (empirical kernel timings)</summary>
 <br>
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-topology-dark-anim.svg">
-  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-topology-light-anim.svg">
-  <img src="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-topology-dark-anim.svg" width="100%" alt="Computational Fabric Topology">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-benchmark-dark-static.svg">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-benchmark-light-static.svg">
+  <img src="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-benchmark-light-static.svg" width="100%" alt="Benchmark suite comparing Black Mamba JIT against CPython 3.14">
+</picture>
+</p>
+<sub>The tail-call recursion kernel (5,000,000 frames) is omitted from the ratio chart because CPython raises <code>RecursionError</code> on it, while Black Mamba collapses it into a single stack frame.</sub>
+</details>
+
+<details>
+<summary><code>02 / compiler pipeline</code> — 5-stage AST, C3 MRO, Hindley-Milner &amp; LLVM 18 schematic</summary>
+<br>
+<p align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-topology-dark-static.svg">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-topology-light-static.svg">
+  <img src="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-topology-light-static.svg" width="100%" alt="Black Mamba 5-stage compilation pipeline">
 </picture>
 </p>
 </details>
 
-<br>
-
-<!-- INTERACTIVE VISUAL MODULE 02: BENCHMARK MATRIX -->
-<details open>
-<summary><b>[ 🏎️ 02 // EMPIRICAL BENCHMARK MATRIX ]</b> <i>(Click to toggle live velocity streams)</i></summary>
+<details>
+<summary><code>03 / contribution cadence</code> — 12-month distribution &amp; repository language filter</summary>
 <br>
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-benchmark-dark-anim.svg">
-  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-benchmark-light-anim.svg">
-  <img src="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-benchmark-dark-anim.svg" width="100%" alt="Empirical Benchmark Matrix">
-</picture>
-</p>
-</details>
-
-<br>
-
-<!-- INTERACTIVE VISUAL MODULE 03: LIVE SIGNAL MESH -->
-<details open>
-<summary><b>[ 🛰️ 03 // LIVE 360° RADAR & ISSUEOPS MESH ]</b> <i>(Click to toggle tactical radar)</i></summary>
-<br>
-<p align="center">
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-signal-dark-anim.svg">
-  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-signal-light-anim.svg">
-  <img src="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-signal-dark-anim.svg" width="100%" alt="Tactical Signal Radar">
-</picture>
-</p>
-
-<p align="center">
-  <a href="https://github.com/kicode01/kicode01/issues/new?template=telemetry_ping.yml&title=%5BTELEMETRY+PING%5D+from+%40your-handle">
-    <img src="https://img.shields.io/badge/⚡_TRANSMIT_SIGNAL-TRIGGER_DISPATCH-blue?style=for-the-badge&logo=github&labelColor=08080a&color=2563eb" alt="Transmit Signal">
-  </a>
-</p>
-
-<!-- telemetry:start -->
-| Signal | Transmitter | Affiliation | Focus Area | Timestamp | Verification |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| `SIG-001` | **@kicode01** | Core Systems Lab | `Applied AI / Compilers` | 2026-10-28 15:15 UTC | `VERIFIED` |
-| `SIG-002` | **@guest-engineer** | Compiler Engineering | `LLVM IR / Runtime Performance` | 2026-10-28 12:40 UTC | `VERIFIED` |
-| `SIG-003` | **@recruiter-network** | Global Frontier AI | `Applied AI Systems & Firmware` | 2026-10-27 21:05 UTC | `VERIFIED` |
-<!-- telemetry:end -->
-
-</details>
-
-<br>
-
-<!-- INTERACTIVE VISUAL MODULE 04: ACTIVITY EQUALIZER -->
-<details open>
-<summary><b>[ 📊 04 // ANNUAL CADENCE EQUALIZER ]</b> <i>(Click to toggle spectrum analyzer)</i></summary>
-<br>
-<p align="center">
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-pulse-dark-anim.svg">
-  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-pulse-light-anim.svg">
-  <img src="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-pulse-dark-anim.svg" width="100%" alt="Contribution Spectrum Equalizer">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-pulse-dark-static.svg">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-pulse-light-static.svg">
+  <img src="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-pulse-light-static.svg" width="100%" alt="12-month contribution distribution">
 </picture>
 </p>
 
@@ -134,16 +142,12 @@
 **304 of 397** contributions landed in October alone. Flat for months, then it isn't.
 <!-- signal:end -->
 
-Filter by language:
-[`Python`](https://github.com/kicode01?tab=repositories&q=language%3APython) 4 &nbsp;·&nbsp; [`TypeScript`](https://github.com/kicode01?tab=repositories&q=language%3ATypeScript) 4 &nbsp;·&nbsp; [`HTML`](https://github.com/kicode01?tab=repositories&q=language%3AHTML) 3 &nbsp;·&nbsp; [`CSS`](https://github.com/kicode01?tab=repositories&q=language%3ACSS) 1 &nbsp;·&nbsp; [`JavaScript`](https://github.com/kicode01?tab=repositories&q=language%3AJavaScript) 1
-
+Filter public repositories by language:
+[`Python`](https://github.com/kicode01?tab=repositories&q=language%3APython "Filter repositories by Python") 4 &nbsp;·&nbsp; [`TypeScript`](https://github.com/kicode01?tab=repositories&q=language%3ATypeScript "Filter repositories by TypeScript") 4 &nbsp;·&nbsp; [`HTML`](https://github.com/kicode01?tab=repositories&q=language%3AHTML "Filter repositories by HTML") 3 &nbsp;·&nbsp; [`CSS`](https://github.com/kicode01?tab=repositories&q=language%3ACSS "Filter repositories by CSS") 1 &nbsp;·&nbsp; [`JavaScript`](https://github.com/kicode01?tab=repositories&q=language%3AJavaScript "Filter repositories by JavaScript") 1
 </details>
 
-<br>
-
-<!-- INTERACTIVE REPOSITORY CROSS-COMMIT LOG -->
 <details>
-<summary><b>[ ⏱️ 05 // LIVE REPOSITORY COMMIT PULSE ]</b> <i>(Click to inspect cross-repo commit feed)</i></summary>
+<summary><code>04 / git log --ecosystem</code> — live commit feed across public repositories</summary>
 <br>
 
 <!-- pulse:start -->
@@ -161,30 +165,41 @@ Recent commits to this profile repository:
 
 <!-- log:start -->
 ```
+a4a5943  chore: refresh profile assets
 0179b87  feat: Next-Gen Apple-Precision Bento Console (Kinetic SVG Cards, Gyroscopic Reactor, 0 Text Clutter)
 9d0e522  chore: refresh profile assets
 59adb5e  feat: Interactive Visual Console layout (zero text clutter, interactive modules, personal cybernetic crest)
 4bdcaed  fix: robust direct raw picture URLs and clean theme media queries
-5fa0271  chore: refresh profile assets
 ```
 <!-- log:end -->
+</details>
 
+<details>
+<summary><code>05 / issueops handshake</code> — event-driven GitHub Actions visitor log</summary>
+<br>
+<p align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-signal-dark-static.svg">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-signal-light-static.svg">
+  <img src="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-signal-light-static.svg" width="100%" alt="Verified IssueOps telemetry log">
+</picture>
+</p>
+
+<!-- telemetry:start -->
+| Signal | Sender | Organization | Focus | Timestamp |
+| :--- | :--- | :--- | :--- | :--- |
+| `SIG-001` | **@kicode01** | Core Systems Lab | `Applied AI / Compilers` | 2026-10-28 15:15 UTC |
+| `SIG-002` | **@guest-engineer** | Compiler Engineering | `LLVM IR / Runtime Performance` | 2026-10-28 12:40 UTC |
+| `SIG-003` | **@recruiter-network** | Global Frontier AI | `Applied AI Systems & Firmware` | 2026-10-27 21:05 UTC |
+<!-- telemetry:end -->
+
+<sub>Want to test the state machine? <a href="https://github.com/kicode01/kicode01/issues/new?template=telemetry_ping.yml&title=%5BTELEMETRY+PING%5D+from+%40your-handle">Submit a handshake issue ↗</a> — a GitHub Action validates it, updates <code>telemetry.json</code>, regenerates the SVG plate above, and closes the issue in ~15 seconds.</sub>
 </details>
 
 ---
 
 <p align="center">
-  <a href="https://github.com/kicode01/kicode01/issues/new?title=Hi%20Kian&body=Where%20I%20found%20you%3A%0A%0AWhat%20you%27re%20working%20on%3A%0A%0A">
-    <img src="https://img.shields.io/badge/PREFILLED_INQUIRY_TICKET-OPEN_DIRECT_CHANNEL-06b6d4?style=for-the-badge&logo=github&labelColor=08080a" alt="Open Ticket">
-  </a>
-  &nbsp;&nbsp;
-  <a href="https://kicode01.github.io/">
-    <img src="https://img.shields.io/badge/PORTFOLIO-KICODE01.GITHUB.IO-2563eb?style=for-the-badge&logo=safari&labelColor=08080a" alt="Portfolio">
-  </a>
-</p>
-
-<p align="center">
   <sub>
-    Vector assets dynamically generated from the GitHub API by <a href="./generate.py"><code>generate.py</code></a> — zero third-party stat cards, zero GIFs, zero screenshots. 100% hand-crafted kinetic SVG in Obsidian Titanium with prefers-color-scheme theme switching.
+    All specification plates are static SVG generated from the GitHub API by <a href="./generate.py"><code>generate.py</code></a> — no third-party stat cards, no animations, and full dark/light theme support via <code>&lt;picture&gt;</code>.
   </sub>
 </p>
