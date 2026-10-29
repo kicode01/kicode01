@@ -59,12 +59,11 @@ def build(theme):
     body = (body.replace('<themed-picture data-catalyst-inline="true">', "")
                 .replace("</themed-picture>", ""))
 
-    # Rewrite full raw URLs to local assets path for offline preview
-    body = body.replace("https://raw.githubusercontent.com/kicode01/kicode01/main/assets/", "assets/")
-
     body = re.sub(r"<source\b[^>]*>", "", body)
-    if theme == "light":
-        body = body.replace("-dark-anim.svg", "-light-anim.svg")
+    body = body.replace("https://raw.githubusercontent.com/kicode01/kicode01/main/assets/", "assets/")
+    if theme == "dark":
+        body = body.replace("-light-static.svg", "-dark-static.svg")
+        body = body.replace("-light-anim.svg", "-dark-anim.svg")
 
     vars_ = {
         "light": ("#ffffff", "#1f2328", "#d1d9e0", "#0969da", "#f6f8fa", "#f6f8fa",

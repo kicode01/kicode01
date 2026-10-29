@@ -3,7 +3,7 @@
 <!-- Zero text clutter · 100% Vector Motion Graphics · Dynamic IssueOps     -->
 <!-- ===================================================================== -->
 
-<!-- KINETIC WAVEFORM & CYBERNETIC EMBLEM HERO -->
+<!-- MASTER KINETIC HERO CONSOLE & GYROSCOPIC REACTOR -->
 <p align="center">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-hero-dark-anim.svg">
@@ -12,41 +12,45 @@
 </picture>
 </p>
 
-<!-- INTERACTIVE HARDWARE & RUNTIME SUBSYSTEM LAUNCHPAD -->
-<table width="100%">
+<!-- 2x2 INTERACTIVE HARDWARE SHOWCASE BENTO MATRIX -->
+<table width="100%" border="0" cellspacing="12" cellpadding="0">
   <tr>
-    <td width="50%" valign="top">
-      <h4>⚡ 01 / BLACK MAMBA JIT COMPILER</h4>
-      <p><b>Pure-Python JIT Compiler · x86-64 Machine Code</b></p>
-      <code>26.1x Speedup · C3 MRO (0.42ms) · 0 KB GC Overhead</code><br><br>
+    <td width="50%" align="center" valign="top">
       <a href="https://github.com/kicode01/blackmamba-lang">
-        <img src="https://img.shields.io/badge/EXPLORE_JIT_ENGINE-2563eb?style=for-the-badge&logo=github&labelColor=08080a" alt="Black Mamba Repo">
+        <picture>
+          <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/card-mamba-dark-anim.svg">
+          <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/card-mamba-light-anim.svg">
+          <img src="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/card-mamba-dark-anim.svg" width="100%" alt="Black Mamba JIT Engine">
+        </picture>
       </a>
     </td>
-    <td width="50%" valign="top">
-      <h4>🧠 02 / TYPENSCRAPE APPLIED AI</h4>
-      <p><b>Stochastic Resilience Cascade · Offline-First PWA</b></p>
-      <code>Groq Llama-3 (420ms) ➔ Gemini · 16-Chunk IndexedDB</code><br><br>
+    <td width="50%" align="center" valign="top">
       <a href="https://github.com/kicode01/typenscrape">
-        <img src="https://img.shields.io/badge/EXPLORE_AI_CASCADE-8b5cf6?style=for-the-badge&logo=github&labelColor=08080a" alt="TypenScrape Repo">
+        <picture>
+          <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/card-typenscrape-dark-anim.svg">
+          <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/card-typenscrape-light-anim.svg">
+          <img src="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/card-typenscrape-dark-anim.svg" width="100%" alt="TypenScrape AI Cascade">
+        </picture>
       </a>
     </td>
   </tr>
   <tr>
-    <td width="50%" valign="top">
-      <h4>📟 03 / VOLTSENSE IoT FIRMWARE</h4>
-      <p><b>Memory-Bounded C++ on ESP32 · Edge Push</b></p>
-      <code>Zero Hardware Secrets · Serverless Push · Isolated Relays</code><br><br>
+    <td width="50%" align="center" valign="top">
       <a href="https://voltsense-iot.vercel.app">
-        <img src="https://img.shields.io/badge/LAUNCH_LIVE_IoT-10b981?style=for-the-badge&logo=vercel&labelColor=08080a" alt="VoltSense Live">
+        <picture>
+          <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/card-voltsense-dark-anim.svg">
+          <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/card-voltsense-light-anim.svg">
+          <img src="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/card-voltsense-dark-anim.svg" width="100%" alt="VoltSense IoT Firmware">
+        </picture>
       </a>
     </td>
-    <td width="50%" valign="top">
-      <h4>👁️ 04 / MEEMOMINI ON-DEVICE VISION</h4>
-      <p><b>MediaPipe WASM Segmenter · Zero Server Hops</b></p>
-      <code>18ms Client Inference · Zero Exfiltration · WebGL PWA</code><br><br>
+    <td width="50%" align="center" valign="top">
       <a href="https://github.com/kicode01/meemomini">
-        <img src="https://img.shields.io/badge/LAUNCH_VISION_APP-ec4899?style=for-the-badge&logo=github&labelColor=08080a" alt="meemomini Repo">
+        <picture>
+          <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/card-meemomini-dark-anim.svg">
+          <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/card-meemomini-light-anim.svg">
+          <img src="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/card-meemomini-dark-anim.svg" width="100%" alt="MeeMoMini On-Device Vision">
+        </picture>
       </a>
     </td>
   </tr>
@@ -157,11 +161,11 @@ Recent commits to this profile repository:
 
 <!-- log:start -->
 ```
+9d0e522  chore: refresh profile assets
 59adb5e  feat: Interactive Visual Console layout (zero text clutter, interactive modules, personal cybernetic crest)
 4bdcaed  fix: robust direct raw picture URLs and clean theme media queries
 5fa0271  chore: refresh profile assets
 bb8a1be  feat: motion-first kinetic graphics overhaul (waveforms, radar sweep, live topology)
-9da6654  chore: refresh profile assets
 ```
 <!-- log:end -->
 

@@ -2,6 +2,7 @@
 Generates precision kinetic systems engineering SVG assets for Kian's profile.
 Motion-first: fluid waveforms, animated gyroscopes, dynamic circuit buses,
 kinetic benchmark laser streams, live 360° radar sweeper, and spectrum equalizer.
+Includes Apple-style interactive Bento Grid showcase cards.
 """
 import json
 import os
@@ -25,7 +26,8 @@ LANG_COLORS = {
 # Precision Systems Architecture Theme (Obsidian & Laser Cobalt / Cyan)
 THEMES = {
     "dark": {
-        "bg0": "#08080A", "bg1": "#0F0F14", "panel": "#14141C", "card": "#181824",
+        "bg0": "#08080A", "bg1": "#0F0F14", "panel": "#14141C", "card": "#151522",
+        "card_grad_end": "#0D0D16",
         "rule": "#222230", "rule_glow": "#2E2E42",
         "text": "#F8FAFC", "dim": "#94A3B8", "micro": "#64748B", "faint": "#161622",
         "accent": "#06B6D4", "accent_end": "#2563EB", "accent_bright": "#38BDF8",
@@ -34,7 +36,8 @@ THEMES = {
         "silver": "#CBD5E1",
     },
     "light": {
-        "bg0": "#FFFFFF", "bg1": "#F8FAFC", "panel": "#FFFFFF", "card": "#F1F5F9",
+        "bg0": "#FFFFFF", "bg1": "#F8FAFC", "panel": "#FFFFFF", "card": "#F8FAFC",
+        "card_grad_end": "#F1F5F9",
         "rule": "#E2E8F0", "rule_glow": "#CBD5E1",
         "text": "#0F172A", "dim": "#64748B", "micro": "#94A3B8", "faint": "#F8FAFC",
         "accent": "#0284C7", "accent_end": "#1D4ED8", "accent_bright": "#0369A1",
@@ -66,6 +69,7 @@ CSS = """
 .eq1{transform-box:fill-box;transform-origin:bottom;animation:eq 1.8s ease-in-out infinite alternate}
 .eq2{transform-box:fill-box;transform-origin:bottom;animation:eq 2.2s ease-in-out infinite alternate .4s}
 .eq3{transform-box:fill-box;transform-origin:bottom;animation:eq 1.5s ease-in-out infinite alternate .8s}
+.shimmer{transform-box:fill-box;animation:shimmer 4.5s ease-in-out infinite}
 
 @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
 @keyframes spin_rev{0%{transform:rotate(360deg)}100%{transform:rotate(0deg)}}
@@ -75,9 +79,10 @@ CSS = """
 @keyframes pulse_glow{0%,100%{opacity:0.4;transform:scale(0.97)}50%{opacity:1;transform:scale(1.03)}}
 @keyframes glow{0%{opacity:0.6}100%{opacity:1}}
 @keyframes ping{0%{r:2px;opacity:1;stroke-width:2px}80%,100%{r:26px;opacity:0;stroke-width:0.5px}}
-@keyframes scan{0%,100%{transform:translateY(0);opacity:0.2}50%{transform:translateY(84px);opacity:0.9}}
+@keyframes scan{0%,100%{transform:translateY(0);opacity:0.2}50%{transform:translateY(96px);opacity:0.95}}
 @keyframes laser_pulse{0%,100%{opacity:0.6;r:4px}50%{opacity:1;r:7px}}
 @keyframes eq{0%{transform:scaleY(0.72)}50%{transform:scaleY(1.04)}100%{transform:scaleY(0.85)}}
+@keyframes shimmer{0%{transform:translateX(-100%)}30%,100%{transform:translateX(150%)}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 """
 
@@ -136,9 +141,47 @@ def fetch():
     user = json.loads(gh(["api", "users/" + LOGIN]))
     repos = json.loads(gh(["api", "users/%s/repos?per_page=100&sort=pushed" % LOGIN]))
 
-    prev = _previous_stats()
-    totals = {k: prev.get(k, 0) for k in ("total_contributions", "commits", "prs", "repos_contributed")}
-    days = prev.get("days", [])
+    QL = """
+    query {
+      user(login: "%s") {
+        contributionsCollection {
+          totalCommitContributions
+          totalPullRequestContributions
+          totalRepositoriesWithContributedCommits
+          contributionCalendar {
+            totalContributions
+            weeks { contributionDays { date contributionCount } }
+          }
+        }
+      }
+    }
+    """ % LOGIN
+
+    contrib, prev = None, {}
+    try:
+        q = " ".join(QL.split())
+        gql = json.loads(gh(["api", "graphql", "-f", "query=" + q]))["data"]["user"]
+        contrib = gql["contributionsCollection"]
+    except Exception as exc:
+        prev = _previous_stats()
+        print("! contribution data unavailable (%s)" % exc, file=sys.stderr)
+        if not prev:
+            raise
+
+    if contrib:
+        cal = contrib["contributionCalendar"]
+        days = [[d["date"], d["contributionCount"]]
+                for w in cal["weeks"] for d in w["contributionDays"]]
+        totals = {
+            "total_contributions": cal["totalContributions"],
+            "commits": contrib["totalCommitContributions"],
+            "prs": contrib["totalPullRequestContributions"],
+            "repos_contributed": contrib["totalRepositoriesWithContributedCommits"],
+        }
+    else:
+        days = prev.get("days", [])
+        totals = {k: prev.get(k, 0) for k in
+                  ("total_contributions", "commits", "prs", "repos_contributed")}
 
     by_lang = defaultdict(int)
     for r in repos:
@@ -170,15 +213,34 @@ def fetch():
 def derive(s):
     days = [(dt.date.fromisoformat(d), c) for d, c in s.get("days", [])]
     s["active_days"] = sum(1 for _, c in days if c > 0)
+
+    longest = cur = 0
+    start = best = None
+    for date, c in days:
+        if c > 0:
+            if cur == 0:
+                start = date
+            cur += 1
+            if cur > longest:
+                longest, best = cur, (start, date)
+        else:
+            cur = 0
+    s["longest_streak"] = longest
+    s["longest_streak_range"] = [d.isoformat() for d in best] if best else None
+
     monthly = defaultdict(int)
     for d, c in days:
         monthly[d.strftime("%Y-%m")] += c
-    s["monthly"] = [{"month": m, "count": c} for m, c in sorted(monthly.items())][-12:]
+    s["monthly"] = [{"month": m, "count": c}
+                    for m, c in sorted(monthly.items())][-12:]
+
     if "cross_repo_commits" not in s or not s["cross_repo_commits"]:
         s["cross_repo_commits"] = cross_repo_commits()
     return s
 
 def load():
+    if "--fetch" in sys.argv:
+        return derive(fetch())
     p = os.path.join(ROOT, "stats.json")
     if os.path.exists(p):
         with open(p, encoding="utf-8") as f:
@@ -192,521 +254,747 @@ def recent_commits(n=5):
     except Exception:
         return []
 
-def head(w, h, motion, defs=""):
+def head(w, h, motion):
     css = f"<style>{CSS}</style>" if motion else ""
     return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" '
-            f'viewBox="0 0 {w} {h}" fill="none" role="img">{css}{defs}')
+            f'viewBox="0 0 {w} {h}" fill="none" role="img">{css}')
 
 def text(x, y, s, size=14, fill="#000", weight="400", family=SANS,
-         anchor="start", ls=0.0, op=1.0, motion=False, cls="", delay=None):
-    anim = f' class="{cls}"' if (motion and cls) else ""
-    if motion and delay is not None:
-        anim += f' style="animation-delay:{delay:.2f}s"'
+         anchor="start", ls=0, op=1.0, cls="", style=""):
+    cls_attr = f' class="{cls}"' if cls else ""
+    style_attr = f' style="{style}"' if style else ""
     ls_attr = f' letter-spacing="{ls}"' if ls else ""
-    op_attr = f' opacity="{op}"' if op < 1.0 else ""
+    op_attr = f' opacity="{op}"' if op != 1.0 else ""
     return (f'<text x="{x}" y="{y}" font-family="{family}" font-size="{size}" '
             f'font-weight="{weight}" fill="{fill}" text-anchor="{anchor}"'
-            f'{ls_attr}{op_attr}{anim}>{escape(str(s))}</text>')
+            f'{ls_attr}{op_attr}{cls_attr}{style_attr}>{escape(str(s))}</text>')
 
-def rule(x1, y1, x2, y2, color, op=1.0):
+def rule(x1, y1, x2, y2, color, op=1.0, dash=""):
+    dash_attr = f' stroke-dasharray="{dash}"' if dash else ""
     return (f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" '
-            f'stroke="{color}" stroke-width="1" opacity="{op:.1f}"/>')
+            f'stroke="{color}" stroke-width="1" opacity="{op}"{dash_attr}/>')
 
-# ------------------------------------------------ KINETIC HERO ----
+def label(x, y, s, P, size=10, ls=1.6, anchor="start", cls=""):
+    return text(x, y, s, size=size, fill=P["micro"], weight="700", family=MONO,
+                ls=ls, anchor=anchor, cls=cls)
+
+# ==============================================================================
+# 00 / MASTER HERO CONSOLE
+# ==============================================================================
 def hero(t, motion=True):
-    """1280x320. Motion-First Kinetic Waveform & Gyroscope Hero."""
-    W, H = 1280, 320
+    W, H = 1280, 380
     P = THEMES[t]
+    o = [head(W, H, motion)]
 
-    defs = f"""<defs>
-<linearGradient id="sys_gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-  <stop offset="0%" stop-color="{P['accent_end']}"/>
-  <stop offset="60%" stop-color="{P['accent']}"/>
-  <stop offset="100%" stop-color="{P['accent_bright']}"/>
+    o.append(f"""<defs>
+<linearGradient id="hero_bg_{t}" x1="0" y1="0" x2="1" y2="1">
+  <stop offset="0" stop-color="{P['bg1']}"/>
+  <stop offset="0.6" stop-color="{P['bg0']}"/>
+  <stop offset="1" stop-color="{P['bg1']}"/>
 </linearGradient>
-<radialGradient id="gyro_glow" cx="50%" cy="50%" r="50%">
-  <stop offset="0%" stop-color="{P['accent']}" stop-opacity="0.25"/>
+<linearGradient id="laser_{t}" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0" stop-color="{P['accent']}"/>
+  <stop offset="0.5" stop-color="{P['blue']}"/>
+  <stop offset="1" stop-color="{P['purple']}"/>
+</linearGradient>
+<linearGradient id="text_grad_{t}" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0" stop-color="{P['text']}"/>
+  <stop offset="0.7" stop-color="{P['text']}"/>
+  <stop offset="1" stop-color="{P['accent_bright']}"/>
+</linearGradient>
+<radialGradient id="reactor_{t}" cx="50%" cy="50%" r="50%">
+  <stop offset="0%" stop-color="{P['accent_bright']}" stop-opacity="0.9"/>
+  <stop offset="40%" stop-color="{P['accent']}" stop-opacity="0.5"/>
+  <stop offset="80%" stop-color="{P['blue']}" stop-opacity="0.2"/>
   <stop offset="100%" stop-color="{P['bg0']}" stop-opacity="0"/>
 </radialGradient>
-<radialGradient id="vignette" cx="50%" cy="50%" r="80%">
-  <stop offset="0%" stop-color="{P['panel']}" stop-opacity="0.4"/>
-  <stop offset="100%" stop-color="{P['bg0']}" stop-opacity="1"/>
-</radialGradient>
-</defs>"""
-
-    o = [head(W, H, motion, defs)]
-    o.append(f'<rect width="{W}" height="{H}" rx="16" fill="{P["bg0"]}"/>')
-    o.append(f'<rect width="{W}" height="{H}" rx="16" fill="url(#vignette)"/>')
-    o.append(f'<rect x="0.5" y="0.5" width="{W-1}" height="{H-1}" rx="16" fill="none" stroke="{P["rule"]}" stroke-width="1"/>')
-
-    # Background Coordinate Crosshairs
-    for cx in (160, 320, 960, 1120):
-        for cy in (70, 150, 230):
-            o.append(f'<path d="M{cx-4} {cy}h8M{cx} {cy-4}v8" stroke="{P["rule_glow"]}" stroke-width="0.8" opacity="0.4"/>')
-
-    # Hypnotic Kinetic Oscilloscope Waveforms (undulating through center)
-    w_y = 150
-    # Wave 1: Fast Cyan Carrier Wave
-    d1 = "M0 150 Q160 110, 320 150 T640 150 T960 150 T1280 150"
-    o.append(f'<path d="{d1}" stroke="{P["accent"]}" stroke-width="2" fill="none" opacity="0.85" class="flow_fast"/>')
-    # Wave 2: Cobalt Harmonic Wave
-    d2 = "M0 150 Q160 190, 320 150 T640 150 T960 150 T1280 150"
-    o.append(f'<path d="{d2}" stroke="{P["accent_end"]}" stroke-width="1.6" fill="none" opacity="0.65" class="flow"/>')
-    # Wave 3: Ambient Violet Envelope
-    d3 = "M0 150 Q320 80, 640 150 T1280 150"
-    o.append(f'<path d="{d3}" stroke="{P["purple"]}" stroke-width="1.2" fill="none" opacity="0.45" class="flow_slow"/>')
-
-    # Central Kinetic Gyroscope Reticle with [ K ] Monogram Emblem
-    gx, gy = W / 2, 88
-    o.append(f'<circle cx="{gx}" cy="{gy}" r="45" fill="url(#gyro_glow)"/>')
-    # Outer Rotating Ticks Ring
-    o.append(f'<circle cx="{gx}" cy="{gy}" r="42" stroke="{P["rule_glow"]}" stroke-width="1.2" stroke-dasharray="3 6" fill="none" class="spin"/>')
-    # Counter-Rotating Ring with Orbital Photons
-    o.append(f'<g class="spin_rev">')
-    o.append(f'<circle cx="{gx}" cy="{gy}" r="32" stroke="{P["accent"]}" stroke-width="1" stroke-dasharray="14 8 4 8" fill="none" opacity="0.7"/>')
-    o.append(f'<circle cx="{gx+32}" cy="{gy}" r="2.5" fill="{P["accent"]}"/>')
-    o.append(f'<circle cx="{gx-32}" cy="{gy}" r="2.5" fill="{P["accent_bright"]}"/>')
-    o.append(f'</g>')
-    # Center Illuminated Monogram Badge
-    o.append(f'<circle cx="{gx}" cy="{gy}" r="16" fill="{P["card"]}" stroke="{P["accent"]}" stroke-width="1.4" class="pulse"/>')
-    o.append(text(gx, gy + 5, "K", size=13, fill=P["accent_bright"], weight="900", family=MONO, anchor="middle"))
-
-    # Top Status Pill
-    pill_w = 400
-    o.append(f'<rect x="{W/2 - pill_w/2}" y="18" width="{pill_w}" height="24" rx="12" fill="{P["card"]}" stroke="{P["rule_glow"]}" stroke-width="1"/>')
-    o.append(f'<circle cx="{W/2 - pill_w/2 + 16}" cy="30" r="3.5" fill="{P["green"]}" class="pulse"/>')
-    o.append(text(W/2 - pill_w/2 + 28, 34, "KIAN B. // SYSTEMS & COMPILERS ARCHITECTURE", size=9, fill=P["text"], weight="700", family=MONO, ls=1.1))
-    o.append(text(W/2 + pill_w/2 - 16, 34, "ACTIVE", size=9, fill=P["green"], weight="800", family=MONO, anchor="end"))
-
-    # Display Typography
-    o.append(text(W/2, 146, "KIAN B.", size=38, fill=P["text"], weight="900", family=SANS, anchor="middle", ls=6.0))
-    # Glowing Laser Underline with Sweeping Comet Head
-    o.append(f'<line x1="{W/2 - 180}" y1="158" x2="{W/2 + 180}" y2="158" stroke="{P["rule_glow"]}" stroke-width="1"/>')
-    o.append(f'<line x1="{W/2 - 160}" y1="158" x2="{W/2 + 160}" y2="158" stroke="{P["accent"]}" stroke-width="2" class="flow_fast"/>')
-    o.append(f'<circle cx="{W/2}" cy="158" r="4" fill="{P["accent_bright"]}" class="laser_head"/>')
-
-    # Subtitle
-    o.append(text(W/2, 184, "PRECISION COMPILERS · EMBEDDED SILICON · ZERO-ALLOC APPLIED AI",
-                  size=10.5, fill=P["dim"], weight="700", family=MONO, anchor="middle", ls=1.6))
-    o.append(text(W/2, 204, "Where abstraction has a measurable cost: know what the layer below actually costs.",
-                  size=12.5, fill=P["micro"], weight="400", family=SANS, anchor="middle", ls=-0.1))
-
-    # Bottom 4 Kinetic Graphic Gauges
-    o.append(rule(48, 230, W - 48, 230, P["rule"]))
-    pillars = [
-        ("26.1x", "NATIVE JIT SPEEDUP", "led"),
-        ("0 KB", "ZERO GC PAUSES", "scope"),
-        ("18 ms", "ON-DEVICE WASM VISION", "wave"),
-        ("0 secrets", "ISOLATED FIRMWARE PUSH", "shield"),
-    ]
-
-    for idx, (stat, label, gtype) in enumerate(pillars):
-        px = 48 + idx * 296
-        # Graphical Meter Icon
-        if gtype == "led":
-            # 8-segment LED meter bar
-            for s in range(8):
-                sx = px + s * 11
-                s_op = "1.0" if s < 6 else "0.35"
-                s_cls = ' class="pulse"' if s >= 5 else ""
-                o.append(f'<rect x="{sx}" y="250" width="8" height="6" rx="1.5" fill="{P["accent"]}" opacity="{s_op}"{s_cls}/>')
-        elif gtype == "scope":
-            # Flatline oscilloscope line with locked zero badge
-            o.append(f'<line x1="{px}" y1="253" x2="{px+80}" y2="253" stroke="{P["green"]}" stroke-width="2"/>')
-            o.append(f'<circle cx="{px}" cy="253" r="2.5" fill="{P["green"]}"/>')
-            o.append(f'<circle cx="{px+80}" cy="253" r="2.5" fill="{P["green"]}"/>')
-            o.append(f'<rect x="{px+26}" y="247" width="28" height="12" rx="3" fill="{P["panel"]}" stroke="{P["green"]}" stroke-width="1"/>')
-            o.append(text(px+40, 256, "0.00", size=7.5, fill=P["green"], weight="800", family=MONO, anchor="middle"))
-        elif gtype == "wave":
-            # Heartbeat / high-frequency pulse spike
-            w_path = f"M{px} 253 h16 l6 -10 l8 18 l6 -12 l6 4 h38"
-            o.append(f'<path d="{w_path}" stroke="{P["accent_bright"]}" stroke-width="1.8" fill="none" class="flow"/>')
-        elif gtype == "shield":
-            # Cryptographic shield vector with pulse
-            o.append(f'<path d="M{px+10} 247 h20 l10 8 v10 c0 10 -15 16 -20 18 c-5 -2 -20 -8 -20 -18 v-10 z" stroke="{P["purple"]}" stroke-width="1.2" fill="none" class="pulse"/>')
-            o.append(f'<circle cx="{px+20}" cy="258" r="3" fill="{P["accent"]}"/>')
-
-        o.append(text(px, 286, stat, size=18, fill=P["text"], weight="900", family=SANS, ls=-0.5))
-        o.append(text(px, 304, label, size=9.5, fill=P["dim"], weight="700", family=MONO, ls=0.8))
-
-    o.append("</svg>")
-    return "".join(o)
-
-# ------------------------------------------------ KINETIC TOPOLOGY ----
-def topology(t, motion=True):
-    """1280x420. Kinetic Microarchitecture Silicon Die & Active Bus Topology."""
-    W, H = 1280, 420
-    P = THEMES[t]
-
-    defs = f"""<defs>
-<linearGradient id="bus_glow" x1="0%" y1="0%" x2="100%" y2="0%">
-  <stop offset="0%" stop-color="{P['accent_end']}"/>
-  <stop offset="50%" stop-color="{P['accent']}"/>
-  <stop offset="100%" stop-color="{P['accent_bright']}"/>
-</linearGradient>
-<radialGradient id="die_center_glow" cx="50%" cy="50%" r="50%">
-  <stop offset="0%" stop-color="{P['accent']}" stop-opacity="0.35"/>
-  <stop offset="100%" stop-color="{P['bg0']}" stop-opacity="0"/>
-</radialGradient>
-<linearGradient id="node_surface" x1="0%" y1="0%" x2="100%" y2="100%">
-  <stop offset="0%" stop-color="{P['panel']}"/>
-  <stop offset="100%" stop-color="{P['card']}"/>
-</linearGradient>
-</defs>"""
-
-    o = [head(W, H, motion, defs)]
-    o.append(f'<rect width="{W}" height="{H}" rx="16" fill="{P["bg0"]}"/>')
-    o.append(f'<rect x="0.5" y="0.5" width="{W-1}" height="{H-1}" rx="16" fill="none" stroke="{P["rule"]}" stroke-width="1"/>')
-
-    # Header Strip
-    o.append(rule(0, 44, W, 44, P["rule"]))
-    o.append(text(48, 26, "HETEROGENEOUS COMPUTATIONAL FABRIC  /  SUBSYSTEM TOPOLOGY", size=10, fill=P["text"], weight="700", family=MONO, ls=1.5))
-    o.append(text(W - 48, 26, "LIVE INTERCONNECT TRAFFIC · ZERO GC · ZERO ALLOCATION OVERHEAD", size=10, fill=P["accent"], weight="700", family=MONO, ls=1.0, anchor="end"))
-
-    # Silicon Die Frame
-    dx, dy, dw, dh = 48, 62, W - 96, 332
-    o.append(f'<rect x="{dx}" y="{dy}" width="{dw}" height="{dh}" rx="14" fill="{P["bg1"]}" stroke="{P["rule_glow"]}" stroke-width="1.2"/>')
-
-    # Active Bus Interconnect Lines (Connecting center hub to 4 quadrants)
-    cx, cy = W / 2, dy + dh / 2
-    cw = 560
-    ch = 136
-    y1 = dy + 18
-    y2 = dy + 178
-
-    # Bus Traces with traveling photon packets
-    q1_cx, q1_cy = dx + 16 + cw / 2, y1 + ch / 2
-    q2_cx, q2_cy = dx + dw - cw - 16 + cw / 2, y1 + ch / 2
-    q3_cx, q3_cy = dx + 16 + cw / 2, y2 + ch / 2
-    q4_cx, q4_cy = dx + dw - cw - 16 + cw / 2, y2 + ch / 2
-
-    for qx, qy in ((q1_cx, q1_cy), (q2_cx, q2_cy), (q3_cx, q3_cy), (q4_cx, q4_cy)):
-        o.append(f'<line x1="{cx}" y1="{cy}" x2="{qx}" y2="{qy}" stroke="{P["rule_glow"]}" stroke-width="1.2"/>')
-        o.append(f'<line x1="{cx}" y1="{cy}" x2="{qx}" y2="{qy}" stroke="{P["accent"]}" stroke-width="2" class="flow"/>')
-
-    # Central Master Interconnect Die Hub
-    o.append(f'<circle cx="{cx}" cy="{cy}" r="45" fill="url(#die_center_glow)"/>')
-    o.append(f'<circle cx="{cx}" cy="{cy}" r="34" stroke="{P["accent_end"]}" stroke-width="1.5" stroke-dasharray="6 6" fill="{P["panel"]}" class="spin"/>')
-    o.append(f'<circle cx="{cx}" cy="{cy}" r="22" stroke="{P["accent"]}" stroke-width="1.8" fill="{P["card"]}" class="spin_rev"/>')
-    o.append(f'<circle cx="{cx}" cy="{cy}" r="8" fill="{P["accent_bright"]}" class="pulse_glow"/>')
-
-    # Central Fabric Pill
-    badge_w = 340
-    o.append(f'<rect x="{cx - badge_w/2}" y="{cy + 42}" width="{badge_w}" height="20" rx="10" fill="{P["panel"]}" stroke="{P["rule_glow"]}" stroke-width="1"/>')
-    o.append(text(cx, cy + 55, "UNIFIED MEMORY FABRIC // ZERO-ALLOC BUS", size=8.5, fill=P["accent"], weight="800", family=MONO, anchor="middle", ls=1.0))
-
-    # --- QUADRANT 1: JIT Compiler Pipeline (Top Left) ---
-    o.append(f'<rect x="{dx+16}" y="{y1}" width="{cw}" height="{ch}" rx="10" fill="url(#node_surface)" stroke="{P["rule_glow"]}" stroke-width="1"/>')
-    o.append(text(dx + 32, y1 + 24, "NATIVE JIT COMPILER PIPELINE", size=11, fill=P["text"], weight="800", family=SANS))
-    o.append(text(dx + cw - 16, y1 + 24, "BLACK MAMBA v1.1.0", size=9.5, fill=P["accent"], weight="700", family=MONO, anchor="end"))
-    o.append(rule(dx + 32, y1 + 34, dx + cw - 16, y1 + 34, P["rule"]))
-
-    # Graphical 4-Stage Execution Pipeline
-    p_stages = [("AST DESUGAR", 100), ("C3 MRO", 90), ("TCO O(1)", 85), ("x86-64 NATIVE", 110)]
-    sx = dx + 32
-    sy = y1 + 46
-    for i, (stage, sw) in enumerate(p_stages):
-        o.append(f'<rect x="{sx}" y="{sy}" width="{sw}" height="26" rx="5" fill="{P["panel"]}" stroke="{P["rule_glow"]}" stroke-width="1"/>')
-        o.append(text(sx + sw / 2, sy + 17, stage, size=8.5, fill=P["text"], weight="700", family=MONO, anchor="middle"))
-        if i < 3:
-            arrow_x = sx + sw
-            o.append(f'<line x1="{arrow_x}" y1="{sy+13}" x2="{arrow_x+16}" y2="{sy+13}" stroke="{P["accent"]}" stroke-width="1.8" class="flow_fast"/>')
-            sx += sw + 16
-        else:
-            sx += sw
-
-    # Micro Specs
-    o.append(text(dx + 32, y1 + 94, "• Direct JIT Execution: mmap(PROT_EXEC) maps native machine code with zero pauses", size=10, fill=P["dim"], family=SANS))
-    o.append(text(dx + 32, y1 + 112, "• C3 Diamond Resolution in 0.42ms · Collapses 5,000,000 recursive call frames to O(1)", size=10, fill=P["dim"], family=SANS))
-
-    # --- QUADRANT 2: Stochastic Resilience Cascade (Top Right) ---
-    x2 = dx + dw - cw - 16
-    o.append(f'<rect x="{x2}" y="{y1}" width="{cw}" height="{ch}" rx="10" fill="url(#node_surface)" stroke="{P["rule_glow"]}" stroke-width="1"/>')
-    o.append(text(x2 + 20, y1 + 24, "STOCHASTIC RESILIENCE CASCADE", size=11, fill=P["text"], weight="800", family=SANS))
-    o.append(text(x2 + cw - 20, y1 + 24, "TYPENSCRAPE", size=9.5, fill=P["purple"], weight="700", family=MONO, anchor="end"))
-    o.append(rule(x2 + 20, y1 + 34, x2 + cw - 20, y1 + 34, P["rule"]))
-
-    # Graphical Routing Cluster & Memory Buffer Grid
-    # Primary Node: Groq Llama-3
-    o.append(f'<rect x="{x2+20}" y="{y1+46}" width="150" height="26" rx="5" fill="{P["panel"]}" stroke="{P["green"]}" stroke-width="1"/>')
-    o.append(f'<circle cx="{x2+32}" cy="{y1+59}" r="3" fill="{P["green"]}" class="pulse"/>')
-    o.append(text(x2 + 42, y1 + 63, "Groq Llama-3 @ 420ms", size=8.5, fill=P["text"], weight="700", family=MONO))
-    # Failover Bus Line
-    o.append(f'<path d="M{x2+170} {y1+59} h24 l8 12 h18" stroke="{P["purple"]}" stroke-width="1.5" fill="none" class="flow"/>')
-    # Fallback Node: Gemini
-    o.append(f'<rect x="{x2+220}" y="{y1+58}" width="110" height="26" rx="5" fill="{P["panel"]}" stroke="{P["purple"]}" stroke-width="1"/>')
-    o.append(text(x2 + 275, y1 + 75, "Gemini Fallback", size=8.5, fill=P["purple"], weight="700", family=MONO, anchor="middle"))
-
-    # 16-Chunk IndexedDB Paging Grid (4x4)
-    gx_start = x2 + 355
-    gy_start = y1 + 46
-    for row in range(2):
-        for col in range(8):
-            cell_x = gx_start + col * 12
-            cell_y = gy_start + row * 12
-            c_fill = P["accent"] if (col + row) % 2 == 0 else P["panel"]
-            o.append(f'<rect x="{cell_x}" y="{cell_y}" width="9" height="9" rx="1.5" fill="{c_fill}" stroke="{P["rule_glow"]}" stroke-width="0.6"/>')
-
-    o.append(text(x2 + 20, y1 + 102, "• Multi-Tier Stochastic Routing: Groq cascades smoothly to Gemini on 429 rate limit", size=10, fill=P["dim"], family=SANS))
-    o.append(text(x2 + 20, y1 + 120, "• Memory Bounding: 16-chunk IndexedDB paging prevents mobile browser OOM", size=10, fill=P["dim"], family=SANS))
-
-    # --- QUADRANT 3: On-Device Vision Accelerator (Bottom Left) ---
-    o.append(f'<rect x="{dx+16}" y="{y2}" width="{cw}" height="{ch}" rx="10" fill="url(#node_surface)" stroke="{P["rule_glow"]}" stroke-width="1"/>')
-    o.append(text(dx + 32, y2 + 24, "ON-DEVICE VISION ACCELERATOR", size=11, fill=P["text"], weight="800", family=SANS))
-    o.append(text(dx + cw - 16, y2 + 24, "MEEMOMINI", size=9.5, fill=P["pink"], weight="700", family=MONO, anchor="end"))
-    o.append(rule(dx + 32, y2 + 34, dx + cw - 16, y2 + 34, P["rule"]))
-
-    # Graphical Computer Vision Viewfinder & Scanning Laser Line
-    vx = dx + 32
-    vy = y2 + 46
-    vw = 120
-    vh = 64
-    o.append(f'<rect x="{vx}" y="{vy}" width="{vw}" height="{vh}" rx="4" fill="{P["panel"]}" stroke="{P["rule_glow"]}" stroke-width="0.8"/>')
-    # Viewfinder Corner Brackets
-    o.append(f'<path d="M{vx+2} {vy+8}v-6h6 M{vx+vw-8} {vy+2}h6v6 M{vx+2} {vy+vh-8}v6h6 M{vx+vw-8} {vy+vh-2}h6v-6" stroke="{P["pink"]}" stroke-width="1.4" fill="none"/>')
-    # 8x4 Feature Matrix
-    for r in range(4):
-        for c in range(8):
-            o.append(f'<circle cx="{vx+16+c*12}" cy="{vy+12+r*13}" r="1.5" fill="{P["rule_glow"]}"/>')
-    # Rotating Tracking Reticle in Center
-    o.append(f'<circle cx="{vx+vw/2}" cy="{vy+vh/2}" r="14" stroke="{P["pink"]}" stroke-width="1" stroke-dasharray="6 4" fill="none" class="spin_fast"/>')
-    # Scanning Horizontal Laser Line
-    o.append(f'<line x1="{vx+4}" y1="{vy+vh/2}" x2="{vx+vw-4}" y2="{vy+vh/2}" stroke="{P["pink"]}" stroke-width="1.8" class="scan"/>')
-
-    # Vision Specs
-    o.append(text(dx + 168, y2 + 62, "MediaPipe WASM Segmenter", size=11, fill=P["text"], weight="700", family=SANS))
-    o.append(text(dx + 168, y2 + 80, "18ms Latency · Zero Exfiltration", size=10, fill=P["pink"], weight="700", family=MONO))
-    o.append(text(dx + 168, y2 + 98, "Client-side WebGL canvas filters & local GIF/MP4 export", size=9.5, fill=P["dim"], family=SANS))
-
-    # --- QUADRANT 4: Edge Firmware Transceiver (Bottom Right) ---
-    o.append(f'<rect x="{x2}" y="{y2}" width="{cw}" height="{ch}" rx="10" fill="url(#node_surface)" stroke="{P["rule_glow"]}" stroke-width="1"/>')
-    o.append(text(x2 + 20, y2 + 24, "EDGE FIRMWARE TRANSCEIVER", size=11, fill=P["text"], weight="800", family=SANS))
-    o.append(text(x2 + cw - 20, y2 + 24, "VOLTSENSE IoT", size=9.5, fill=P["green"], weight="700", family=MONO, anchor="end"))
-    o.append(rule(x2 + 20, y2 + 34, x2 + cw - 20, y2 + 34, P["rule"]))
-
-    # Graphical ESP32 Microcontroller & Animated Radio Broadcast
-    ex = x2 + 20
-    ey = y2 + 48
-    # Silicon Chip Package
-    o.append(f'<rect x="{ex}" y="{ey}" width="70" height="60" rx="4" fill="{P["panel"]}" stroke="{P["green"]}" stroke-width="1"/>')
-    o.append(text(ex + 35, ey + 34, "ESP32", size=10, fill=P["green"], weight="800", family=MONO, anchor="middle"))
-    # Chip Pins
-    for p in range(4):
-        o.append(f'<line x1="{ex-6}" y1="{ey+12+p*12}" x2="{ex}" y2="{ey+12+p*12}" stroke="{P["rule_glow"]}" stroke-width="1.5"/>')
-        o.append(f'<line x1="{ex+70}" y1="{ey+12+p*12}" x2="{ex+76}" y2="{ey+12+p*12}" stroke="{P["rule_glow"]}" stroke-width="1.5"/>')
-
-    # Animated Radio Broadcast Waves
-    rx_center = ex + 76
-    ry_center = ey + 30
-    o.append(f'<path d="M{rx_center+8} {ry_center-12} a16 16 0 0 1 0 24" stroke="{P["green"]}" stroke-width="1.4" fill="none" class="ping1"/>')
-    o.append(f'<path d="M{rx_center+18} {ry_center-20} a26 26 0 0 1 0 40" stroke="{P["green"]}" stroke-width="1.4" fill="none" class="ping2"/>')
-    o.append(f'<path d="M{rx_center+28} {ry_center-28} a36 36 0 0 1 0 56" stroke="{P["green"]}" stroke-width="1.2" fill="none" class="ping3"/>')
-
-    # Firmware Specs
-    o.append(text(x2 + 160, y2 + 62, "Memory-Bounded C++ on ESP32", size=11, fill=P["text"], weight="700", family=SANS))
-    o.append(text(x2 + 160, y2 + 80, "Zero-Secret Serverless Bridge", size=10, fill=P["green"], weight="700", family=MONO))
-    o.append(text(x2 + 160, y2 + 98, "Optocoupler relay isolation & direct FCM edge dispatch", size=9.5, fill=P["dim"], family=SANS))
-
-    o.append("</svg>")
-    return "".join(o)
-
-# ------------------------------------------------ KINETIC BENCHMARK ----
-def benchmark(t, motion=True):
-    """1280x280. Kinetic Benchmark Velocity Streams."""
-    W, H = 1280, 280
-    P = THEMES[t]
-
-    defs = f"""<defs>
-<linearGradient id="bench_stream" x1="0%" y1="0%" x2="100%" y2="0%">
-  <stop offset="0%" stop-color="{P['accent_end']}"/>
-  <stop offset="60%" stop-color="{P['accent']}"/>
-  <stop offset="100%" stop-color="{P['accent_bright']}"/>
-</linearGradient>
-<radialGradient id="laser_glow" cx="50%" cy="50%" r="50%">
-  <stop offset="0%" stop-color="{P['accent_bright']}" stop-opacity="0.8"/>
+<linearGradient id="shimmer_{t}" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0" stop-color="{P['accent']}" stop-opacity="0"/>
+  <stop offset="50%" stop-color="{P['accent_bright']}" stop-opacity="0.8"/>
   <stop offset="100%" stop-color="{P['accent']}" stop-opacity="0"/>
-</radialGradient>
-</defs>"""
+</linearGradient>
+</defs>""")
 
-    o = [head(W, H, motion, defs)]
-    o.append(f'<rect width="{W}" height="{H}" rx="16" fill="{P["bg0"]}"/>')
-    o.append(f'<rect x="0.5" y="0.5" width="{W-1}" height="{H-1}" rx="16" fill="none" stroke="{P["rule"]}" stroke-width="1"/>')
+    # Main Chassis
+    o.append(f'<rect width="{W}" height="{H}" rx="20" fill="url(#hero_bg_{t})" stroke="{P["rule"]}" stroke-width="1.5"/>')
 
-    # Top strip
-    o.append(rule(0, 44, W, 44, P["rule"]))
-    o.append(text(48, 26, "EMPIRICAL BENCHMARK MATRIX  /  BLACK MAMBA JIT vs CPYTHON 3.14", size=10, fill=P["text"], weight="700", family=MONO, ls=1.5))
-    o.append(text(W - 48, 26, "DETERMINISTIC LATENCY REDUCTION · IDENTICAL HOST HARDWARE", size=10, fill=P["accent"], weight="700", family=MONO, anchor="end"))
+    # Top Specular Shimmer Line
+    if motion:
+        o.append(f'<g class="shimmer"><line x1="0" y1="1.5" x2="400" y2="1.5" stroke="url(#shimmer_{t})" stroke-width="2.5"/></g>')
 
-    kernels = [
-        ("fib(32) — Recursive Branching", "288.62ms", "11.08ms", 26.1, "26.1x FASTER"),
-        ("collatz(40k) — Control Flow", "227.84ms", "8.29ms", 27.5, "27.5x FASTER"),
-        ("count_primes(30k) — Memory Scanning", "22.05ms", "1.73ms", 12.7, "12.7x FASTER"),
-        ("mandelbrot(120x120) — Floating-Point", "39.14ms", "3.37ms", 11.6, "11.6x FASTER"),
+    # Header strip
+    o.append(rule(0, 48, W, 48, P["rule"]))
+    o.append(f'<circle cx="48" cy="24" r="4.5" fill="{P["green"]}" class="pulse"/>')
+    o.append(label(64, 28, "SYSTEM ONLINE // KIAN B. // SYSTEMS ARCHITECT & COMPILER ENGINEER", P, ls=1.8))
+    o.append(text(W - 48, 28, f"UTC TELEMETRY · REPO STATUS: ALL SYSTEMS NOMINAL · {STATS['generated']}", size=10,
+                  fill=P["accent"], weight="700", family=MONO, ls=1.5, anchor="end"))
+
+    # Left Section: Identity & Vision
+    o.append(text(48, 98, "CORE SYSTEMS · APPLIED AI · EDGE RUNTIMES", size=11,
+                  fill=P["accent"], weight="700", family=MONO, ls=2.5))
+    o.append(text(46, 175, "KIAN", size=82, fill=f"url(#text_grad_{t})", weight="900",
+                  ls=-3.0, family=SANS))
+    o.append(text(48, 218, "I architect compilers, edge firmware, and resilient applied AI.", size=18,
+                  fill=P["dim"], weight="400", ls=-0.2, family=SANS))
+    o.append(text(48, 242, "Zero-cost abstractions where every cycle, token, and byte is measured.", size=13.5,
+                  fill=P["micro"], weight="500", family=MONO))
+
+    # Metric Instrument Pods
+    o.append(rule(48, 270, 720, 270, P["rule"]))
+    metrics = [
+        (str(STATS["public_repos"]), "PUBLIC REPOS", P["blue"]),
+        (str(STATS["total_contributions"]), "CONTRIBUTIONS", P["green"]),
+        (str(STATS["commits"]), "COMMITS (12M)", P["accent"]),
+        ("26.1x", "COMPILER PEAK", P["pink"]),
     ]
+    pod_w = 160
+    for i, (val, lbl, col) in enumerate(metrics):
+        px = 48 + i * pod_w
+        if i > 0:
+            o.append(rule(px - 10, 282, px - 10, 348, P["rule"]))
+        o.append(f'<rect x="{px}" y="280" width="138" height="68" rx="10" fill="{P["panel"]}" stroke="{P["rule"]}" stroke-width="1"/>')
+        o.append(label(px + 12, 302, lbl, P, size=8.5, ls=1.2))
+        o.append(text(px + 12, 334, val, size=24, fill=col, weight="800", family=MONO, ls=-0.5))
 
-    base_y = 66
-    for idx, (name, c_ms, m_ms, ratio, badge) in enumerate(kernels):
-        ky = base_y + idx * 48
+    # Right Section: Gyroscopic Quantum Reactor Core
+    cx, cy = 990, 210
 
-        # Kernel Name
-        o.append(text(48, ky + 14, name, size=11, fill=P["text"], weight="700", family=SANS))
-        o.append(text(340, ky + 14, f"CPython: {c_ms}", size=10, fill=P["dim"], weight="500", family=MONO))
-        o.append(text(470, ky + 14, f"JIT: {m_ms}", size=10, fill=P["accent"], weight="700", family=MONO))
+    # Ambient Glow
+    o.append(f'<circle cx="{cx}" cy="{cy}" r="140" fill="url(#reactor_{t})"/>')
 
-        # Precision Track
-        bx = 580
-        max_track_w = 460
-        bar_w = int(max_track_w * (ratio / 30.0))
+    # Radial tick marks (Outer Stator)
+    for a in range(0, 360, 15):
+        import math
+        rad = math.radians(a)
+        r1 = 126
+        r2 = 134 if a % 45 == 0 else 130
+        x1 = cx + r1 * math.cos(rad)
+        y1 = cy + r1 * math.sin(rad)
+        x2 = cx + r2 * math.cos(rad)
+        y2 = cy + r2 * math.sin(rad)
+        tick_col = P["accent_bright"] if a % 90 == 0 else P["rule_glow"]
+        o.append(f'<line x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}" stroke="{tick_col}" stroke-width="1.2"/>')
 
-        # Background Track with micro ruler ticks
-        o.append(f'<rect x="{bx}" y="{ky + 4}" width="{max_track_w}" height="14" rx="7" fill="{P["bar"]}"/>')
-        for tick in range(1, 9):
-            tx = bx + tick * (max_track_w / 9)
-            o.append(f'<line x1="{tx}" y1="{ky+4}" x2="{tx}" y2="{ky+18}" stroke="{P["rule"]}" stroke-width="0.8"/>')
+    # Ring 1: Outer Reverse Gyro
+    cls_r1 = 'class="spin_rev"' if motion else ''
+    o.append(f'<g {cls_r1}>')
+    o.append(f'<circle cx="{cx}" cy="{cy}" r="114" stroke="{P["accent"]}" stroke-width="1.5" stroke-dasharray="14 10 32 8" opacity="0.8"/>')
+    o.append(f'<circle cx="{cx+114}" cy="{cy}" r="3.5" fill="{P["accent_bright"]}"/>')
+    o.append(f'<circle cx="{cx-114}" cy="{cy}" r="3.5" fill="{P["accent_bright"]}"/>')
+    o.append('</g>')
 
-        # Vibrant Kinetic Laser Stream
-        o.append(f'<rect x="{bx}" y="{ky + 4}" width="{bar_w}" height="14" rx="7" fill="url(#bench_stream)"/>')
-        o.append(f'<line x1="{bx+4}" y1="{ky+11}" x2="{bx+bar_w-4}" y2="{ky+11}" stroke="#FFFFFF" stroke-width="1.2" opacity="0.6" class="flow_fast"/>')
+    # Ring 2: Intermediate Forward Gyro with Bus Nodes
+    cls_r2 = 'class="spin"' if motion else ''
+    o.append(f'<g {cls_r2}>')
+    o.append(f'<circle cx="{cx}" cy="{cy}" r="88" stroke="{P["blue"]}" stroke-width="2" stroke-dasharray="24 16 48 12" opacity="0.9"/>')
+    o.append(f'<rect x="{cx-5}" y="{cy-88-5}" width="10" height="10" rx="2" fill="{P["accent"]}" stroke="{P["bg0"]}" stroke-width="1.5"/>')
+    o.append(f'<rect x="{cx-5}" y="{cy+88-5}" width="10" height="10" rx="2" fill="{P["purple"]}" stroke="{P["bg0"]}" stroke-width="1.5"/>')
+    o.append('</g>')
 
-        # Glowing Comet Head Node at the tip
-        comet_x = bx + bar_w
-        o.append(f'<circle cx="{comet_x}" cy="{ky+11}" r="9" fill="url(#laser_glow)"/>')
-        o.append(f'<circle cx="{comet_x}" cy="{ky+11}" r="4" fill="{P["accent_bright"]}" class="laser_head"/>')
+    # Ring 3: Fast Core Ring
+    cls_r3 = 'class="spin_fast"' if motion else ''
+    o.append(f'<g {cls_r3}>')
+    o.append(f'<circle cx="{cx}" cy="{cy}" r="62" stroke="{P["purple"]}" stroke-width="1.5" stroke-dasharray="12 6" opacity="0.8"/>')
+    o.append(f'<circle cx="{cx}" cy="{cy-62}" r="3" fill="{P["green"]}"/>')
+    o.append('</g>')
 
-        # Glowing Speedup Pill
-        o.append(f'<rect x="{bx + max_track_w + 16}" y="{ky + 2}" width="114" height="18" rx="9" fill="{P["card"]}" stroke="{P["accent"]}" stroke-width="1"/>')
-        o.append(text(bx + max_track_w + 73, ky + 14, badge, size=9.5, fill=P["accent"], weight="800", family=MONO, anchor="middle"))
+    # Center Reactor Crystal
+    cls_core = 'class="pulse_glow"' if motion else ''
+    o.append(f'<g {cls_core}>')
+    o.append(f'<circle cx="{cx}" cy="{cy}" r="38" fill="{P["panel"]}" stroke="{P["accent"]}" stroke-width="2"/>')
+    o.append(f'<circle cx="{cx}" cy="{cy}" r="22" fill="{P["accent"]}" opacity="0.85"/>')
+    o.append(f'<circle cx="{cx}" cy="{cy}" r="10" fill="#FFFFFF"/>')
+    o.append('</g>')
 
-    o.append(rule(48, H - 28, W - 48, H - 28, P["rule"]))
-    o.append(text(W/2, H - 12, "Deep recursive call kernel collapses 5,000,000 frames to 0 stack bytes via Tail-Call Optimization.",
-                  size=9.5, fill=P["dim"], weight="500", family=SANS, anchor="middle"))
+    # Crosshair Collimators
+    o.append(f'<line x1="{cx-145}" y1="{cy}" x2="{cx-125}" y2="{cy}" stroke="{P["accent"]}" stroke-width="1.5"/>')
+    o.append(f'<line x1="{cx+125}" y1="{cy}" x2="{cx+145}" y2="{cy}" stroke="{P["accent"]}" stroke-width="1.5"/>')
+    o.append(f'<line x1="{cx}" y1="{cy-145}" x2="{cx}" y2="{cy-125}" stroke="{P["accent"]}" stroke-width="1.5"/>')
+    o.append(f'<line x1="{cx}" y1="{cy+125}" x2="{cx}" y2="{cy+145}" stroke="{P["accent"]}" stroke-width="1.5"/>')
+
+    # Reactor Labels
+    o.append(text(cx, cy + 148, "CORE QUANTUM ENGINE // 120MHz", size=9,
+                  fill=P["micro"], weight="700", family=MONO, anchor="middle", ls=1.5))
 
     o.append("</svg>")
     return "".join(o)
 
-# ------------------------------------------------ KINETIC SIGNAL RADAR ----
-def telemetry(t, motion=True):
-    """1280x230. Live 360° Radar Sweeper & Oscilloscope Mesh."""
-    W, H = 1280, 230
+
+# ==============================================================================
+# 01 / BENTO CARD: BLACK MAMBA JIT COMPILER
+# ==============================================================================
+def card_mamba(t, motion=True):
+    W, H = 620, 360
     P = THEMES[t]
+    o = [head(W, H, motion)]
 
-    defs = f"""<defs>
-<radialGradient id="radar_cone" cx="50%" cy="50%" r="50%">
-  <stop offset="0%" stop-color="{P['accent']}" stop-opacity="0.3"/>
-  <stop offset="100%" stop-color="{P['bg0']}" stop-opacity="0"/>
-</radialGradient>
-</defs>"""
+    o.append(f"""<defs>
+<linearGradient id="mamba_bg_{t}" x1="0" y1="0" x2="1" y2="1">
+  <stop offset="0" stop-color="{P['card']}"/>
+  <stop offset="1" stop-color="{P['card_grad_end']}"/>
+</linearGradient>
+<linearGradient id="speedo_grad_{t}" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0" stop-color="{P['blue']}"/>
+  <stop offset="1" stop-color="{P['accent_bright']}"/>
+</linearGradient>
+<linearGradient id="trace_flow_{t}" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0" stop-color="{P['blue']}"/>
+  <stop offset="0.5" stop-color="{P['accent_bright']}"/>
+  <stop offset="1" stop-color="{P['green']}"/>
+</linearGradient>
+</defs>""")
 
-    o = [head(W, H, motion, defs)]
-    o.append(f'<rect width="{W}" height="{H}" rx="16" fill="{P["bg0"]}"/>')
-    o.append(f'<rect x="0.5" y="0.5" width="{W-1}" height="{H-1}" rx="16" fill="none" stroke="{P["rule"]}" stroke-width="1"/>')
+    # Glassmorphic Chassis
+    o.append(f'<rect width="{W}" height="{H}" rx="18" fill="url(#mamba_bg_{t})" stroke="{P["rule"]}" stroke-width="1.5"/>')
 
-    # Top strip
-    o.append(rule(0, 44, W, 44, P["rule"]))
-    o.append(f'<circle cx="48" cy="22" r="3.5" fill="{P["green"]}" class="pulse"/>')
-    o.append(text(62, 26, "SIGNAL MESH  /  AUTONOMOUS EVENT-DRIVEN ISSUEOPS RADAR", size=10, fill=P["text"], weight="700", family=MONO, ls=1.5))
-    o.append(text(W - 48, 26, "AUTONOMOUS GITHUB ACTIONS DISPATCH IN ~15 SECONDS", size=10, fill=P["accent"], weight="700", family=MONO, ls=1.0, anchor="end"))
+    # Top Header
+    o.append(f'<rect x="24" y="22" width="180" height="24" rx="6" fill="{P["panel"]}" stroke="{P["rule"]}" stroke-width="1"/>')
+    o.append(text(34, 38, "01 / JIT COMPILER & RUNTIME", size=9, fill=P["blue"], weight="700", family=MONO, ls=1.2))
 
-    # Tactical Circular Radar Screen (Left side)
-    rx, ry, rad = 130, 134, 72
-    # Background Glow & Outer Ring
-    o.append(f'<circle cx="{rx}" cy="{ry}" r="{rad}" fill="{P["panel"]}" stroke="{P["rule_glow"]}" stroke-width="1.2"/>')
-    o.append(f'<circle cx="{rx}" cy="{ry}" r="{rad*0.66:.1f}" stroke="{P["rule"]}" stroke-width="0.8" fill="none"/>')
-    o.append(f'<circle cx="{rx}" cy="{ry}" r="{rad*0.33:.1f}" stroke="{P["rule"]}" stroke-width="0.8" fill="none"/>')
-    # Cardinal Crosshairs
-    o.append(f'<line x1="{rx-rad}" y1="{ry}" x2="{rx+rad}" y2="{ry}" stroke="{P["rule_glow"]}" stroke-width="0.8"/>')
-    o.append(f'<line x1="{rx}" y1="{ry-rad}" x2="{rx}" y2="{ry+rad}" stroke="{P["rule_glow"]}" stroke-width="0.8"/>')
+    o.append(f'<circle cx="{W-135}" cy="34" r="4" fill="{P["green"]}" class="pulse"/>')
+    o.append(text(W - 124, 38, "26.1x SPEEDUP", size=10, fill=P["green"], weight="700", family=MONO, ls=1.0))
 
-    # 360° Rotating Radar Sweep Cone
-    o.append(f'<g class="radar">')
-    o.append(f'<path d="M{rx} {ry} L{rx+rad} {ry} A{rad} {rad} 0 0 0 {rx} {ry-rad} Z" fill="url(#radar_cone)"/>')
-    o.append(f'<line x1="{rx}" y1="{ry}" x2="{rx+rad}" y2="{ry}" stroke="{P["accent_bright"]}" stroke-width="1.8"/>')
-    o.append(f'</g>')
+    o.append(text(24, 82, "BLACK MAMBA v1.1.0", size=24, fill=P["text"], weight="800", family=SANS))
+    o.append(text(24, 102, "Pure-Python JIT · Dynamic C3 MRO · Native x86-64 Machine Code", size=11, fill=P["dim"], weight="500", family=MONO))
 
-    # 3 Radar Blip Targets with Ping Ripple Waves
-    blips = [(rx - 28, ry - 32, "ping1", P["accent"]),
-             (rx + 36, ry + 22, "ping2", P["blue"]),
-             (rx - 14, ry + 40, "ping3", P["green"])]
-    for bx, by, ping_cls, b_col in blips:
-        o.append(f'<circle cx="{bx}" cy="{by}" r="3" fill="{b_col}"/>')
-        o.append(f'<circle cx="{bx}" cy="{by}" r="2" stroke="{b_col}" fill="none" class="{ping_cls}"/>')
+    # Architecture Pipeline Graphic Viewport
+    vx, vy, vw, vh = 24, 120, 572, 172
+    o.append(f'<rect x="{vx}" y="{vy}" width="{vw}" height="{vh}" rx="12" fill="{P["bg0"]}" stroke="{P["rule"]}" stroke-width="1"/>')
 
-    # Center Screen Divider
-    o.append(rule(230, 60, 230, H - 36, P["rule"]))
+    # Flow trace lines
+    cls_flow = 'class="flow_fast"' if motion else ''
+    o.append(f'<path d="M {vx+30} {vy+50} H {vx+140} V {vy+105} H {vx+360}" fill="none" stroke="url(#trace_flow_{t})" stroke-width="2.5" {cls_flow}/>')
+    o.append(f'<path d="M {vx+140} {vy+50} H {vx+360}" fill="none" stroke="{P["rule_glow"]}" stroke-width="1.5" stroke-dasharray="4 4"/>')
 
-    # Digital Oscilloscope Waveform Display (Middle)
-    ox, oy, ow, oh = 250, 68, 300, 114
-    o.append(f'<rect x="{ox}" y="{oy}" width="{ow}" height="{oh}" rx="6" fill="{P["panel"]}" stroke="{P["rule_glow"]}" stroke-width="0.8"/>')
-    o.append(text(ox + 12, oy + 20, "TELEMETRY CARRIER OSCILLOSCOPE", size=8.5, fill=P["dim"], weight="700", family=MONO, ls=1.0))
+    # Stage Pod 1: Grammar & AST
+    o.append(f'<rect x="{vx+24}" y="{vy+32}" width="105" height="38" rx="8" fill="{P["panel"]}" stroke="{P["blue"]}" stroke-width="1.2"/>')
+    o.append(text(vx + 34, vy + 48, "PYTHONIC AST", size=9.5, fill=P["text"], weight="700", family=MONO))
+    o.append(text(vx + 34, vy + 61, "Unboxed Structs", size=8, fill=P["micro"], weight="600", family=MONO))
 
-    # Animated Square Clock Signal & Sine Waveform
-    sq_path = f"M{ox+12} {oy+50} h16 v-16 h16 v16 h16 v-16 h16 v16 h16 v-16 h16 v16 h16 v-16 h16 v16 h16 v-16 h16 v16 h16 v-16 h16 v16 h16 v-16 h16 v16 h16 v-16 h16 v16 h16 v-16"
-    o.append(f'<path d="{sq_path}" stroke="{P["purple"]}" stroke-width="1.4" fill="none" class="flow_fast"/>')
-    sin_path = f"M{ox+12} {oy+88} q20 -20, 40 0 t40 0 t40 0 t40 0 t40 0 t40 0"
-    o.append(f'<path d="{sin_path}" stroke="{P["accent"]}" stroke-width="1.6" fill="none" class="flow"/>')
+    # Stage Pod 2: C3 MRO & Solver
+    o.append(f'<rect x="{vx+155}" y="{vy+32}" width="115" height="38" rx="8" fill="{P["panel"]}" stroke="{P["purple"]}" stroke-width="1.2"/>')
+    o.append(text(vx + 165, vy + 48, "DYNAMIC C3 MRO", size=9.5, fill=P["text"], weight="700", family=MONO))
+    o.append(text(vx + 165, vy + 61, "0.42ms Linearize", size=8, fill=P["purple"], weight="600", family=MONO))
 
-    # Live Signal Slots (Right side)
-    p = os.path.join(ROOT, "telemetry.json")
+    # Stage Pod 3: TCO Collapse
+    o.append(f'<rect x="{vx+105}" y="{vy+86}" width="135" height="38" rx="8" fill="{P["panel"]}" stroke="{P["accent"]}" stroke-width="1.2"/>')
+    o.append(text(vx + 115, vy + 102, "TCO ENGINE", size=9.5, fill=P["text"], weight="700", family=MONO))
+    o.append(text(vx + 115, vy + 115, "5M -> 0 Call Frames", size=8, fill=P["accent"], weight="600", family=MONO))
+
+    # Stage Pod 4: x86-64 Machine Code Emitter
+    o.append(f'<rect x="{vx+260}" y="{vy+86}" width="115" height="38" rx="8" fill="{P["panel"]}" stroke="{P["green"]}" stroke-width="1.2"/>')
+    o.append(text(vx + 270, vy + 102, "x86-64 NATIVE", size=9.5, fill=P["text"], weight="700", family=MONO))
+    o.append(text(vx + 270, vy + 115, "Direct JIT Emitter", size=8, fill=P["green"], weight="600", family=MONO))
+
+    # Speedometer Gauge Dial on the Right
+    gx, gy = vx + 465, vy + 86
+    o.append(f'<circle cx="{gx}" cy="{gy}" r="55" fill="{P["panel"]}" stroke="{P["rule"]}" stroke-width="1.5"/>')
+    o.append(f'<circle cx="{gx}" cy="{gy}" r="45" stroke="{P["rule"]}" stroke-width="6" stroke-dasharray="180 360" fill="none"/>')
+    cls_pg = 'class="pulse_glow"' if motion else ''
+    o.append(f'<circle cx="{gx}" cy="{gy}" r="45" stroke="url(#speedo_grad_{t})" stroke-width="6" stroke-dasharray="190 280" fill="none" {cls_pg}/>')
+    o.append(text(gx, gy + 4, "26.1x", size=20, fill=P["text"], weight="900", family=MONO, anchor="middle"))
+    o.append(text(gx, gy + 18, "VS CPYTHON", size=7.5, fill=P["accent_bright"], weight="700", family=MONO, anchor="middle", ls=1.0))
+
+    # Bottom Pill Specs & Action
+    o.append(rule(24, 308, W - 24, 308, P["rule"]))
+    o.append(text(24, 334, "0 KB GC OVERHEAD  ·  1.7KB WASM  ·  PE32+/ELF64 LINKERS", size=9.5, fill=P["micro"], weight="600", family=MONO, ls=0.8))
+
+    # Integrated Button
+    btn_x = W - 180
+    o.append(f'<rect x="{btn_x}" y="318" width="156" height="28" rx="6" fill="{P["panel"]}" stroke="{P["blue"]}" stroke-width="1"/>')
+    o.append(text(btn_x + 78, 336, "EXPLORE JIT ENGINE ↗", size=9, fill=P["blue"], weight="700", family=MONO, anchor="middle", ls=0.8))
+
+    o.append("</svg>")
+    return "".join(o)
+
+
+# ==============================================================================
+# 02 / BENTO CARD: TYPENSCRAPE APPLIED AI CASCADE
+# ==============================================================================
+def card_typenscrape(t, motion=True):
+    W, H = 620, 360
+    P = THEMES[t]
+    o = [head(W, H, motion)]
+
+    o.append(f"""<defs>
+<linearGradient id="ai_bg_{t}" x1="0" y1="0" x2="1" y2="1">
+  <stop offset="0" stop-color="{P['card']}"/>
+  <stop offset="1" stop-color="{P['card_grad_end']}"/>
+</linearGradient>
+<linearGradient id="ai_pulse_{t}" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0" stop-color="{P['purple']}"/>
+  <stop offset="0.5" stop-color="{P['blue']}"/>
+  <stop offset="1" stop-color="{P['green']}"/>
+</linearGradient>
+</defs>""")
+
+    # Chassis
+    o.append(f'<rect width="{W}" height="{H}" rx="18" fill="url(#ai_bg_{t})" stroke="{P["rule"]}" stroke-width="1.5"/>')
+
+    # Header
+    o.append(f'<rect x="24" y="22" width="180" height="24" rx="6" fill="{P["panel"]}" stroke="{P["rule"]}" stroke-width="1"/>')
+    o.append(text(34, 38, "02 / APPLIED AI & RESILIENCE", size=9, fill=P["purple"], weight="700", family=MONO, ls=1.2))
+
+    o.append(f'<circle cx="{W-135}" cy="34" r="4" fill="{P["purple"]}" class="pulse"/>')
+    o.append(text(W - 124, 38, "420ms CASCADE", size=10, fill=P["purple"], weight="700", family=MONO, ls=1.0))
+
+    o.append(text(24, 82, "TYPENSCRAPE AI CASCADE", size=24, fill=P["text"], weight="800", family=SANS))
+    o.append(text(24, 102, "Stochastic Resilience · Groq Llama-3 → Gemini · 16-Chunk IndexedDB", size=11, fill=P["dim"], weight="500", family=MONO))
+
+    # Viewport
+    vx, vy, vw, vh = 24, 120, 572, 172
+    o.append(f'<rect x="{vx}" y="{vy}" width="{vw}" height="{vh}" rx="12" fill="{P["bg0"]}" stroke="{P["rule"]}" stroke-width="1"/>')
+
+    # Interconnect Routing
+    cls_flow = 'class="flow"' if motion else ''
+    o.append(f'<path d="M {vx+120} {vy+50} H {vx+190} V {vy+50} H {vx+270}" fill="none" stroke="{P["blue"]}" stroke-width="2" {cls_flow}/>')
+    o.append(f'<path d="M {vx+230} {vy+50} V {vy+115} H {vx+270}" fill="none" stroke="{P["purple"]}" stroke-width="2" stroke-dasharray="6 4" {cls_flow}/>')
+    o.append(f'<path d="M {vx+390} {vy+50} H {vx+440}" fill="none" stroke="{P["green"]}" stroke-width="2" {cls_flow}/>')
+
+    # Query Input Pod
+    o.append(f'<rect x="{vx+20}" y="{vy+32}" width="100" height="38" rx="8" fill="{P["panel"]}" stroke="{P["rule"]}" stroke-width="1"/>')
+    o.append(text(vx + 30, vy + 48, "USER QUERY", size=9, fill=P["text"], weight="700", family=MONO))
+    o.append(text(vx + 30, vy + 61, "Recipe Request", size=8, fill=P["micro"], weight="600", family=MONO))
+
+    # Node 1: Groq Llama-3 (Primary)
+    o.append(f'<rect x="{vx+270}" y="{vy+32}" width="125" height="38" rx="8" fill="{P["panel"]}" stroke="{P["blue"]}" stroke-width="1.5"/>')
+    o.append(text(vx + 280, vy + 48, "GROQ LLAMA-3", size=9.5, fill=P["blue"], weight="800", family=MONO))
+    o.append(text(vx + 280, vy + 61, "420ms Ultra-Fast", size=8, fill=P["green"], weight="700", family=MONO))
+
+    # Node 2: Gemini Fallback
+    o.append(f'<rect x="{vx+270}" y="{vy+96}" width="125" height="38" rx="8" fill="{P["panel"]}" stroke="{P["purple"]}" stroke-width="1.5"/>')
+    o.append(text(vx + 280, vy + 112, "GEMINI RESILIENCE", size=9.5, fill=P["purple"], weight="800", family=MONO))
+    o.append(text(vx + 280, vy + 125, "Rate Limit Fallback", size=8, fill=P["dim"], weight="600", family=MONO))
+
+    # Memory Architecture Ring on Right (16-chunk IndexedDB)
+    mx, my = vx + 495, vy + 86
+    cls_spin = 'class="spin"' if motion else ''
+    o.append(f'<g {cls_spin}>')
+    o.append(f'<circle cx="{mx}" cy="{my}" r="45" fill="none" stroke="{P["rule"]}" stroke-width="1"/>')
+    for a in range(0, 360, 24):
+        import math
+        rad = math.radians(a)
+        cx_ = mx + 45 * math.cos(rad)
+        cy_ = my + 45 * math.sin(rad)
+        o.append(f'<circle cx="{cx_:.1f}" cy="{cy_:.1f}" r="3.5" fill="{P["accent_bright"]}"/>')
+    o.append('</g>')
+    o.append(f'<circle cx="{mx}" cy="{my}" r="26" fill="{P["panel"]}" stroke="{P["rule"]}" stroke-width="1"/>')
+    o.append(text(mx, my + 3, "16-CHUNK", size=8.5, fill=P["text"], weight="800", family=MONO, anchor="middle"))
+    o.append(text(mx, my + 14, "INDEXEDDB", size=7, fill=P["micro"], weight="600", family=MONO, anchor="middle"))
+
+    # Bottom
+    o.append(rule(24, 308, W - 24, 308, P["rule"]))
+    o.append(text(24, 334, "OFFLINE-FIRST PWA  ·  MEMORY-BOUNDED STREAMING  ·  ZERO FAILURE", size=9.5, fill=P["micro"], weight="600", family=MONO, ls=0.8))
+
+    btn_x = W - 180
+    o.append(f'<rect x="{btn_x}" y="318" width="156" height="28" rx="6" fill="{P["panel"]}" stroke="{P["purple"]}" stroke-width="1"/>')
+    o.append(text(btn_x + 78, 336, "EXPLORE AI CASCADE ↗", size=9, fill=P["purple"], weight="700", family=MONO, anchor="middle", ls=0.8))
+
+    o.append("</svg>")
+    return "".join(o)
+
+
+# ==============================================================================
+# 03 / BENTO CARD: VOLTSENSE EDGE FIRMWARE & IOT
+# ==============================================================================
+def card_voltsense(t, motion=True):
+    W, H = 620, 360
+    P = THEMES[t]
+    o = [head(W, H, motion)]
+
+    o.append(f"""<defs>
+<linearGradient id="volt_bg_{t}" x1="0" y1="0" x2="1" y2="1">
+  <stop offset="0" stop-color="{P['card']}"/>
+  <stop offset="1" stop-color="{P['card_grad_end']}"/>
+</linearGradient>
+</defs>""")
+
+    # Chassis
+    o.append(f'<rect width="{W}" height="{H}" rx="18" fill="url(#volt_bg_{t})" stroke="{P["rule"]}" stroke-width="1.5"/>')
+
+    # Header
+    o.append(f'<rect x="24" y="22" width="180" height="24" rx="6" fill="{P["panel"]}" stroke="{P["rule"]}" stroke-width="1"/>')
+    o.append(text(34, 38, "03 / EDGE FIRMWARE & HARDWARE", size=9, fill=P["green"], weight="700", family=MONO, ls=1.2))
+
+    o.append(f'<circle cx="{W-135}" cy="34" r="4" fill="{P["green"]}" class="pulse"/>')
+    o.append(text(W - 124, 38, "ACTIVE TELEMETRY", size=10, fill=P["green"], weight="700", family=MONO, ls=1.0))
+
+    o.append(text(24, 82, "VOLTSENSE IoT FIRMWARE", size=24, fill=P["text"], weight="800", family=SANS))
+    o.append(text(24, 102, "Memory-Bounded C++ · ESP32 · Isolated Vercel Push · Zero Secrets", size=11, fill=P["dim"], weight="500", family=MONO))
+
+    # Viewport (Oscilloscope & Relay Monitor)
+    vx, vy, vw, vh = 24, 120, 572, 172
+    o.append(f'<rect x="{vx}" y="{vy}" width="{vw}" height="{vh}" rx="12" fill="{P["bg0"]}" stroke="{P["rule"]}" stroke-width="1"/>')
+
+    # Oscilloscope Graticule
+    for gx in range(vx + 40, vx + 330, 40):
+        o.append(f'<line x1="{gx}" y1="{vy+15}" x2="{gx}" y2="{vy+155}" stroke="{P["rule"]}" stroke-width="0.8" stroke-dasharray="2 4" opacity="0.6"/>')
+    for gy in [vy + 45, vy + 85, vy + 125]:
+        o.append(f'<line x1="{vx+20}" y1="{gy}" x2="{vx+330}" y2="{gy}" stroke="{P["rule"]}" stroke-width="0.8" stroke-dasharray="2 4" opacity="0.6"/>')
+
+    # Sine Wave AC Voltage Curve
+    sine_pts = []
+    import math
+    for x in range(0, 310, 4):
+        rad = (x / 310) * 4 * math.pi
+        y = (vy + 85) + math.sin(rad) * 32
+        sine_pts.append(f"{'M' if x == 0 else 'L'} {vx+20+x} {y:.1f}")
+    sine_path = " ".join(sine_pts)
+    cls_flow = 'class="flow_fast"' if motion else ''
+    o.append(f'<path d="{sine_path}" fill="none" stroke="{P["green"]}" stroke-width="2.5" {cls_flow}/>')
+    o.append(text(vx + 30, vy + 35, "AC 230V RMS LOAD", size=9, fill=P["green"], weight="800", family=MONO))
+
+    # Relay State Modules on Right
+    rx = vx + 360
+    relays = [
+        ("RELAY 01 / HIGH LOAD", "ENGAGED", P["green"]),
+        ("RELAY 02 / PERIPHERAL", "STANDBY", P["micro"]),
+        ("RELAY 03 / SENSOR BUS", "ENGAGED", P["green"]),
+    ]
+    for i, (r_name, r_state, r_col) in enumerate(relays):
+        ry = vy + 24 + i * 44
+        o.append(f'<rect x="{rx}" y="{ry}" width="190" height="36" rx="6" fill="{P["panel"]}" stroke="{P["rule"]}" stroke-width="1"/>')
+        o.append(f'<circle cx="{rx+16}" cy="{ry+18}" r="4" fill="{r_col}" class="pulse"/>')
+        o.append(text(rx + 30, ry + 16, r_name, size=8.5, fill=P["text"], weight="700", family=MONO))
+        o.append(text(rx + 30, ry + 28, f"STATE: {r_state}", size=8, fill=r_col, weight="800", family=MONO))
+
+    # Bottom
+    o.append(rule(24, 308, W - 24, 308, P["rule"]))
+    o.append(text(24, 334, "ZERO HARDWARE SECRETS  ·  SERVERLESS PUSH  ·  ISOLATED RELAYS", size=9.5, fill=P["micro"], weight="600", family=MONO, ls=0.8))
+
+    btn_x = W - 180
+    o.append(f'<rect x="{btn_x}" y="318" width="156" height="28" rx="6" fill="{P["panel"]}" stroke="{P["green"]}" stroke-width="1"/>')
+    o.append(text(btn_x + 78, 336, "LAUNCH LIVE IoT ↗", size=9, fill=P["green"], weight="700", family=MONO, anchor="middle", ls=0.8))
+
+    o.append("</svg>")
+    return "".join(o)
+
+
+# ==============================================================================
+# 04 / BENTO CARD: MEEMOMINI ON-DEVICE COMPUTER VISION
+# ==============================================================================
+def card_meemomini(t, motion=True):
+    W, H = 620, 360
+    P = THEMES[t]
+    o = [head(W, H, motion)]
+
+    o.append(f"""<defs>
+<linearGradient id="vision_bg_{t}" x1="0" y1="0" x2="1" y2="1">
+  <stop offset="0" stop-color="{P['card']}"/>
+  <stop offset="1" stop-color="{P['card_grad_end']}"/>
+</linearGradient>
+<linearGradient id="scan_beam_{t}" x1="0" y1="0" x2="0" y2="1">
+  <stop offset="0" stop-color="{P['pink']}" stop-opacity="0"/>
+  <stop offset="90%" stop-color="{P['pink']}" stop-opacity="0.8"/>
+  <stop offset="100%" stop-color="#FFFFFF" stop-opacity="1"/>
+</linearGradient>
+</defs>""")
+
+    # Chassis
+    o.append(f'<rect width="{W}" height="{H}" rx="18" fill="url(#vision_bg_{t})" stroke="{P["rule"]}" stroke-width="1.5"/>')
+
+    # Header
+    o.append(f'<rect x="24" y="22" width="180" height="24" rx="6" fill="{P["panel"]}" stroke="{P["rule"]}" stroke-width="1"/>')
+    o.append(text(34, 38, "04 / COMPUTER VISION & WASM", size=9, fill=P["pink"], weight="700", family=MONO, ls=1.2))
+
+    o.append(f'<circle cx="{W-135}" cy="34" r="4" fill="{P["pink"]}" class="pulse"/>')
+    o.append(text(W - 124, 38, "18ms INFERENCE", size=10, fill=P["pink"], weight="700", family=MONO, ls=1.0))
+
+    o.append(text(24, 82, "MEEMOMINI ON-DEVICE VISION", size=24, fill=P["text"], weight="800", family=SANS))
+    o.append(text(24, 102, "MediaPipe WASM Segmenter · Zero Server Hops · Client Privacy", size=11, fill=P["dim"], weight="500", family=MONO))
+
+    # Viewport (Spatial Vision Reticle)
+    vx, vy, vw, vh = 24, 120, 572, 172
+    o.append(f'<rect x="{vx}" y="{vy}" width="{vw}" height="{vh}" rx="12" fill="{P["bg0"]}" stroke="{P["rule"]}" stroke-width="1"/>')
+
+    # Viewfinder Corner Brackets
+    fx, fy, fw, fh = vx + 40, vy + 20, 200, 132
+    o.append(f'<path d="M {fx} {fy+20} V {fy} H {fx+20}" fill="none" stroke="{P["pink"]}" stroke-width="2"/>')
+    o.append(f'<path d="M {fx+fw-20} {fy} H {fx+fw} V {fy+20}" fill="none" stroke="{P["pink"]}" stroke-width="2"/>')
+    o.append(f'<path d="M {fx} {fy+fh-20} V {fy+fh} H {fx+20}" fill="none" stroke="{P["pink"]}" stroke-width="2"/>')
+    o.append(f'<path d="M {fx+fw-20} {fy+fh} H {fx+fw} V {fy+fh-20}" fill="none" stroke="{P["pink"]}" stroke-width="2"/>')
+
+    # Human Silhouette Mask in Viewfinder
+    sx, sy = fx + 100, fy + 66
+    o.append(f'<circle cx="{sx}" cy="{sy-22}" r="18" fill="{P["panel"]}" stroke="{P["accent_bright"]}" stroke-width="1.5"/>')
+    o.append(f'<path d="M {sx-32} {sy+36} C {sx-28} {sy+2}, {sx+28} {sy+2}, {sx+32} {sy+36} Z" fill="{P["panel"]}" stroke="{P["accent_bright"]}" stroke-width="1.5"/>')
+
+    # Animated Scanning Laser Beam
+    if motion:
+        o.append(f'<g class="scan">')
+        o.append(f'<rect x="{fx+4}" y="{fy+4}" width="{fw-8}" height="28" fill="url(#scan_beam_{t})"/>')
+        o.append(f'<line x1="{fx+4}" y1="{fy+32}" x2="{fx+fw-4}" y2="{fy+32}" stroke="#FFFFFF" stroke-width="1.5"/>')
+        o.append('</g>')
+
+    # Target Tracking Crosshair
+    o.append(f'<circle cx="{sx}" cy="{sy-22}" r="26" stroke="{P["pink"]}" stroke-width="1" stroke-dasharray="4 6"/>')
+
+    # Vision Telemetry Metrics on Right
+    tx = vx + 280
+    metrics = [
+        ("INFERENCE LATENCY", "18 ms (WASM)", P["green"]),
+        ("NETWORK EXFILTRATION", "0.00 BYTES (100% PRIVATE)", P["pink"]),
+        ("FPS THROUGHPUT", "60.0 FPS CONTINUOUS", P["accent_bright"]),
+    ]
+    for i, (m_lbl, m_val, m_col) in enumerate(metrics):
+        my = vy + 28 + i * 42
+        o.append(f'<rect x="{tx}" y="{my}" width="270" height="34" rx="6" fill="{P["panel"]}" stroke="{P["rule"]}" stroke-width="1"/>')
+        o.append(text(tx + 16, my + 14, m_lbl, size=8, fill=P["micro"], weight="700", family=MONO))
+        o.append(text(tx + 16, my + 26, m_val, size=10, fill=m_col, weight="800", family=MONO))
+
+    # Bottom
+    o.append(rule(24, 308, W - 24, 308, P["rule"]))
+    o.append(text(24, 334, "ZERO SERVER HOPS  ·  WASM IMAGE SEGMENTER  ·  WEBGL ACCELERATED", size=9.5, fill=P["micro"], weight="600", family=MONO, ls=0.8))
+
+    btn_x = W - 180
+    o.append(f'<rect x="{btn_x}" y="318" width="156" height="28" rx="6" fill="{P["panel"]}" stroke="{P["pink"]}" stroke-width="1"/>')
+    o.append(text(btn_x + 78, 336, "LAUNCH VISION APP ↗", size=9, fill=P["pink"], weight="700", family=MONO, anchor="middle", ls=0.8))
+
+    o.append("</svg>")
+    return "".join(o)
+
+
+# ==============================================================================
+# 05 / COMPUTATIONAL FABRIC TOPOLOGY
+# ==============================================================================
+def topology(t, motion=True):
+    W, H = 1280, 340
+    P = THEMES[t]
+    o = [head(W, H, motion)]
+    o.append(f'<rect width="{W}" height="{H}" rx="18" fill="{P["bg0"]}" stroke="{P["rule"]}" stroke-width="1.5"/>')
+
+    # Top Strip
+    o.append(rule(0, 48, W, 48, P["rule"]))
+    o.append(f'<circle cx="48" cy="24" r="4.5" fill="{P["accent"]}" class="pulse"/>')
+    o.append(label(64, 28, "COMPUTATIONAL FABRIC TOPOLOGY  //  COMPILERS · RUNTIMES · APPLIED AI · EDGE", P, ls=1.8))
+    o.append(text(W - 48, 28, "BUS CLOCK: SYNCHRONOUS · ARCHITECTURE v1.2", size=10, fill=P["accent"],
+                  weight="700", family=MONO, ls=1.5, anchor="end"))
+
+    # Main 5 Architectural Nodes
+    nodes = [
+        ("01 / SOURCE LAYER", "Black Mamba Syntax", "Pythonic grammar, unboxed structs", P["blue"]),
+        ("02 / FRONTEND", "Dynamic C3 Diamond MRO", "0.42ms linearization, polymorphic vtables", P["purple"]),
+        ("03 / INFERENCE", "Hindley-Milner Solver", "Static type propagator, escape analyzer", P["accent_bright"]),
+        ("04 / CODEGEN", "LLVM 18 IR Emitter", "TCO collapse (5M -> 0 stack frames)", P["green"]),
+        ("05 / TARGET EMISSION", "PE32+ / ELF64 / WASM", "Standalone native machine code, 0 GC", P["amber"]),
+    ]
+
+    nw = 210
+    nh = 150
+    gap = (W - 96 - (5 * nw)) / 4
+    by = 95
+
+    # Glowing Bus Backbone Line
+    bus_y = by + nh / 2
+    cls_flow = 'class="flow_fast"' if motion else ''
+    o.append(f'<line x1="48" y1="{bus_y}" x2="{W-48}" y2="{bus_y}" stroke="{P["rule_glow"]}" stroke-width="3"/>')
+    o.append(f'<line x1="48" y1="{bus_y}" x2="{W-48}" y2="{bus_y}" stroke="{P["accent_bright"]}" stroke-width="2" {cls_flow}/>')
+
+    for i, (n_num, n_title, n_desc, n_col) in enumerate(nodes):
+        nx = 48 + i * (nw + gap)
+        # Node Card
+        o.append(f'<rect x="{nx}" y="{by}" width="{nw}" height="{nh}" rx="12" fill="{P["panel"]}" stroke="{P["rule"]}" stroke-width="1"/>')
+        o.append(f'<rect x="{nx}" y="{by}" width="{nw}" height="5" rx="2" fill="{n_col}"/>')
+
+        o.append(text(nx + 16, by + 30, n_num, size=9.5, fill=n_col, weight="800", family=MONO, ls=1.0))
+        o.append(text(nx + 16, by + 56, n_title, size=13, fill=P["text"], weight="700", family=SANS))
+        o.append(text(nx + 16, by + 82, n_desc, size=9, fill=P["dim"], weight="500", family=MONO))
+
+        # Port Connector Dot
+        o.append(f'<circle cx="{nx+nw/2}" cy="{bus_y}" r="6" fill="{P["panel"]}" stroke="{n_col}" stroke-width="2.5"/>')
+        o.append(f'<circle cx="{nx+nw/2}" cy="{bus_y}" r="2" fill="{n_col}"/>')
+
+        o.append(f'<rect x="{nx+16}" y="{by+108}" width="{nw-32}" height="24" rx="6" fill="{P["bg0"]}" stroke="{P["rule"]}" stroke-width="0.8"/>')
+        o.append(text(nx + nw / 2, by + 124, "STATUS: NOMINAL", size=8.5, fill=P["green"], weight="700", family=MONO, anchor="middle", ls=0.8))
+
+    # Bottom Specs
+    o.append(rule(48, 285, W - 48, 285, P["rule"]))
+    specs = [
+        ("EXECUTION PARADIGM", "DIRECT EXECUTION (mmap PROT_EXEC)"),
+        ("COMPILER FRONTEND", "INDENTATION DESUGARING & AST DESERIALIZER"),
+        ("TYPE SAFETY", "STATIC PROPAGATION + COMPILATION SPEED"),
+        ("EDGE CODESIGN", "ESP32 C++ TELEMETRY & 18ms WASM COMPUTER VISION"),
+    ]
+    for i, (k, v) in enumerate(specs):
+        cx = 48 + i * 300
+        if i > 0:
+            o.append(rule(cx - 15, 296, cx - 15, 324, P["rule"]))
+        o.append(label(cx, 302, k, P, size=8.5, ls=1.2))
+        o.append(text(cx, 322, v, size=10, fill=P["text"], weight="700", family=MONO))
+
+    o.append("</svg>")
+    return "".join(o)
+
+
+# ==============================================================================
+# 06 / EMPIRICAL BENCHMARK MATRIX
+# ==============================================================================
+def benchmark(t, motion=True):
+    W, H = 1280, 300
+    P = THEMES[t]
+    o = [head(W, H, motion)]
+    o.append(f'<rect width="{W}" height="{H}" rx="18" fill="{P["bg0"]}" stroke="{P["rule"]}" stroke-width="1.5"/>')
+
+    # Top Strip
+    o.append(rule(0, 48, W, 48, P["rule"]))
+    o.append(f'<circle cx="48" cy="24" r="4.5" fill="{P["green"]}" class="pulse"/>')
+    o.append(label(64, 28, "EMPIRICAL BENCHMARK MATRIX  //  BLACK MAMBA JIT vs CPYTHON 3.14 (IDENTICAL KERNELS)", P, ls=1.8))
+    o.append(text(W - 48, 28, "HOST: x86-64 NATIVE MACHINE · ZERO RUNTIME GC TAX", size=10, fill=P["accent"],
+                  weight="700", family=MONO, ls=1.5, anchor="end"))
+
+    bench_data = [
+        ("fib(32)", 288.62, 11.08, "26.1x", "14.2 MB vs 1.1 MB"),
+        ("collatz(40k)", 227.84, 8.29, "27.5x", "12.8 MB vs 0.9 MB"),
+        ("mandelbrot(120x120)", 39.14, 3.37, "11.6x", "16.4 MB vs 1.4 MB"),
+        ("count_primes(30k)", 22.05, 1.73, "12.7x", "11.2 MB vs 0.8 MB"),
+    ]
+
+    base_y = 80
+    row_h = 44
+    bar_max_w = 480
+
+    for i, (k_name, py_t, bm_t, ratio, mem) in enumerate(bench_data):
+        ry = base_y + i * (row_h + 8)
+        o.append(f'<rect x="48" y="{ry}" width="{W-96}" height="{row_h}" rx="8" fill="{P["panel"]}" stroke="{P["rule"]}" stroke-width="1"/>')
+
+        o.append(text(68, ry + 27, k_name, size=12, fill=P["text"], weight="700", family=MONO))
+        o.append(text(250, ry + 27, f"CPython: {py_t:.1f}ms", size=10.5, fill=P["micro"], weight="600", family=MONO))
+
+        # Dynamic Benchmark Laser Bar
+        bx = 410
+        bw = int((py_t / 300.0) * bar_max_w)
+        bw_bm = max(int((bm_t / 300.0) * bar_max_w), 12)
+
+        # CPython baseline track
+        o.append(f'<rect x="{bx}" y="{ry+16}" width="{bw}" height="12" rx="4" fill="{P["bar"]}" opacity="0.6"/>')
+        # Black Mamba blazing laser
+        cls_laser = 'class="pulse_glow"' if motion else ''
+        o.append(f'<rect x="{bx}" y="{ry+16}" width="{bw_bm}" height="12" rx="4" fill="{P["green"]}" {cls_laser}/>')
+
+        o.append(text(bx + bw + 18, ry + 26, f"{bm_t:.2f}ms", size=11, fill=P["green"], weight="800", family=MONO))
+
+        # Speedup Ratio Pill
+        px = W - 240
+        o.append(f'<rect x="{px}" y="{ry+8}" width="78" height="28" rx="6" fill="{P["bg0"]}" stroke="{P["green"]}" stroke-width="1.2"/>')
+        o.append(text(px + 39, ry + 26, ratio, size=11, fill=P["green"], weight="900", family=MONO, anchor="middle"))
+
+        o.append(text(W - 68, ry + 27, mem, size=9.5, fill=P["dim"], weight="600", family=MONO, anchor="end"))
+
+    o.append("</svg>")
+    return "".join(o)
+
+
+# ==============================================================================
+# 07 / LIVE 360° RADAR & ISSUEOPS TELEMETRY
+# ==============================================================================
+def telemetry(t, motion=True):
+    W, H = 1280, 380
+    P = THEMES[t]
+    o = [head(W, H, motion)]
+    o.append(f'<rect width="{W}" height="{H}" rx="18" fill="{P["bg0"]}" stroke="{P["rule"]}" stroke-width="1.5"/>')
+
+    # Top Strip
+    o.append(rule(0, 48, W, 48, P["rule"]))
+    o.append(f'<circle cx="48" cy="24" r="4.5" fill="{P["accent"]}" class="pulse"/>')
+    o.append(label(64, 28, "LIVE 360° RADAR & ISSUEOPS STATE MACHINE  //  EVENT-DRIVEN VISITOR TELEMETRY", P, ls=1.8))
+    o.append(text(W - 48, 28, "HANDSHAKE PROTOCOL: ACTIVE · ACK TIME: ~15s", size=10, fill=P["green"],
+                  weight="700", family=MONO, ls=1.5, anchor="end"))
+
+    # Left Section: 360° Tactical Radar Screen
+    rx, ry = 220, 210
+
+    # Range Circles
+    for r in [40, 80, 120, 150]:
+        o.append(f'<circle cx="{rx}" cy="{ry}" r="{r}" stroke="{P["rule_glow"]}" stroke-width="1" stroke-dasharray="3 6" fill="none"/>')
+
+    # Crosshair Axes
+    o.append(f'<line x1="{rx-155}" y1="{ry}" x2="{rx+155}" y2="{ry}" stroke="{P["rule"]}" stroke-width="1"/>')
+    o.append(f'<line x1="{rx}" y1="{ry-155}" x2="{rx}" y2="{ry+155}" stroke="{P["rule"]}" stroke-width="1"/>')
+
+    # Tactical Sweep Beam
+    cls_radar = 'class="radar"' if motion else ''
+    o.append(f'<g {cls_radar}>')
+    o.append(f'<line x1="{rx}" y1="{ry}" x2="{rx}" y2="{ry-150}" stroke="{P["accent_bright"]}" stroke-width="2"/>')
+    o.append(f'<polygon points="{rx},{ry} {rx-60},{ry-140} {rx},{ry-150}" fill="{P["accent"]}" opacity="0.25"/>')
+    o.append('</g>')
+
+    # Target Blips (Telemetry signals from visitors)
+    blips = [
+        (rx + 65, ry - 70, "@kicode01", "ping1", P["accent_bright"]),
+        (rx - 80, ry + 45, "@guest-eng", "ping2", P["green"]),
+        (rx + 95, ry + 60, "@recruiter", "ping3", P["purple"]),
+    ]
+    for bx, by, tag, ping_cls, col in blips:
+        cls_p = f'class="{ping_cls}"' if motion else ''
+        o.append(f'<circle cx="{bx}" cy="{by}" r="4" fill="{col}"/>')
+        o.append(f'<circle cx="{bx}" cy="{by}" r="12" stroke="{col}" fill="none" {cls_p}/>')
+        o.append(text(bx + 10, by + 4, tag, size=8.5, fill=col, weight="700", family=MONO))
+
+    # Right Section: Handshake Log Terminal
+    tx, ty = 430, 75
+    tw, th = W - tx - 48, 275
+    o.append(f'<rect x="{tx}" y="{ty}" width="{tw}" height="{th}" rx="12" fill="{P["panel"]}" stroke="{P["rule"]}" stroke-width="1"/>')
+    o.append(rule(tx, ty + 38, tx + tw, ty + 38, P["rule"]))
+
+    o.append(text(tx + 20, ty + 24, "VERIFIED TELEMETRY STREAM (ISSUEOPS STATE MACHINE)", size=10, fill=P["text"], weight="700", family=MONO, ls=1.0))
+    o.append(text(tx + tw - 20, ty + 24, "PORT: 443 [OPEN]", size=9, fill=P["green"], weight="700", family=MONO, anchor="end"))
+
+    # Load real signals from telemetry.json
+    tp = os.path.join(ROOT, "telemetry.json")
     signals = []
-    if os.path.exists(p):
+    if os.path.exists(tp):
         try:
-            with open(p, "r", encoding="utf-8") as f:
+            with open(tp, "r", encoding="utf-8") as f:
                 signals = json.load(f).get("signals", [])
         except Exception:
             pass
 
     if not signals:
         signals = [
-            {"id": "SIG-001", "sender": "kicode01", "org": "Core Systems Lab",
-             "focus": "Applied AI / Compilers", "note": "Genesis telemetry port online.",
-             "timestamp": "2026-10-28 15:15 UTC"}
+            {"id": "SIG-001", "sender": "kicode01", "org": "Core Systems Lab", "focus": "Applied AI / Compilers", "timestamp": "2026-10-28 15:15 UTC"},
+            {"id": "SIG-002", "sender": "guest-engineer", "org": "Compiler Engineering", "focus": "LLVM IR / Runtime Performance", "timestamp": "2026-10-28 12:40 UTC"},
+            {"id": "SIG-003", "sender": "recruiter-network", "org": "Global Frontier AI", "focus": "Applied AI Systems & Firmware", "timestamp": "2026-10-27 21:05 UTC"},
         ]
 
-    tx_start = 574
-    for i, sig in enumerate(signals[:3]):
-        sy = 68 + i * 40
-        o.append(f'<rect x="{tx_start}" y="{sy}" width="{W - tx_start - 48}" height="32" rx="6" fill="{P["panel"]}" stroke="{P["rule_glow"]}" stroke-width="1"/>')
-        o.append(f'<circle cx="{tx_start + 18}" cy="{sy + 16}" r="3" fill="{P["accent"]}"/>')
-        o.append(text(tx_start + 30, sy + 20, sig.get("id", f"SIG-{i+1:03d}"), size=10, fill=P["accent"], weight="800", family=MONO))
-        o.append(text(tx_start + 110, sy + 20, "@" + sig.get("sender", "anonymous")[:16], size=10.5, fill=P["text"], weight="700", family=MONO))
-        o.append(text(tx_start + 270, sy + 20, sig.get("focus", "Applied AI / Systems")[:26], size=9.5, fill=P["dim"], weight="500", family=MONO))
-        o.append(text(W - 68, sy + 20, "VERIFIED", size=9.5, fill=P["green"], weight="800", family=MONO, anchor="end"))
-
-    o.append(rule(48, H - 28, W - 48, H - 28, P["rule"]))
-    o.append(text(W/2, H - 12, "CLICK BELOW TO TRANSMIT LIVE HANDSHAKE // GITHUB ACTIONS AUTO-DISPATCH IN ~15 SECONDS",
-                  size=9, fill=P["dim"], weight="700", family=MONO, anchor="middle", ls=0.8))
+    for i, s in enumerate(signals[:3]):
+        sy = ty + 56 + i * 68
+        o.append(f'<rect x="{tx+16}" y="{sy}" width="{tw-32}" height="56" rx="8" fill="{P["bg0"]}" stroke="{P["rule"]}" stroke-width="1"/>')
+        o.append(text(tx + 30, sy + 22, f"[{s.get('id')}] @{s.get('sender')}", size=11, fill=P["accent_bright"], weight="800", family=MONO))
+        o.append(text(tx + 30, sy + 42, f"ORG: {s.get('org')}  ·  FOCUS: {s.get('focus')}", size=9, fill=P["dim"], weight="600", family=MONO))
+        o.append(text(tx + tw - 34, sy + 22, "VERIFIED", size=9, fill=P["green"], weight="800", family=MONO, anchor="end"))
+        o.append(text(tx + tw - 34, sy + 42, s.get("timestamp", ""), size=8.5, fill=P["micro"], weight="500", family=MONO, anchor="end"))
 
     o.append("</svg>")
     return "".join(o)
 
-# ------------------------------------------------ KINETIC SPECTRUM EQUALIZER ----
+
+# ==============================================================================
+# 08 / ANNUAL CONTRIBUTION SPECTRUM EQUALIZER
+# ==============================================================================
 def bars(t, motion=True):
-    """1280x160. Kinetic Spectrum Equalizer Contribution Volume."""
-    W, H = 1280, 160
+    W, H = 1280, 250
     P = THEMES[t]
+    o = [head(W, H, motion)]
 
-    defs = f"""<defs>
-<linearGradient id="eq_grad" x1="0%" y1="0%" x2="0%" y2="100%">
-  <stop offset="0%" stop-color="{P['accent_bright']}"/>
-  <stop offset="50%" stop-color="{P['accent']}"/>
-  <stop offset="100%" stop-color="{P['panel']}"/>
+    o.append(f"""<defs>
+<linearGradient id="eq_grad_{t}" x1="0" y1="1" x2="0" y2="0">
+  <stop offset="0%" stop-color="{P['blue']}"/>
+  <stop offset="60%" stop-color="{P['accent_bright']}"/>
+  <stop offset="100%" stop-color="{P['green']}"/>
 </linearGradient>
-</defs>"""
+</defs>""")
 
-    o = [head(W, H, motion, defs)]
-    o.append(f'<rect width="{W}" height="{H}" rx="16" fill="{P["bg0"]}"/>')
-    o.append(f'<rect x="0.5" y="0.5" width="{W-1}" height="{H-1}" rx="16" fill="none" stroke="{P["rule"]}" stroke-width="1"/>')
+    o.append(f'<rect width="{W}" height="{H}" rx="18" fill="{P["bg0"]}" stroke="{P["rule"]}" stroke-width="1.5"/>')
 
-    # Top Strip
     o.append(rule(0, 44, W, 44, P["rule"]))
-    o.append(text(48, 26, "ANNUAL CONTRIBUTION CADENCE  /  SPECTRUM EQUALIZER", size=10, fill=P["text"], weight="700", family=MONO, ls=1.5))
-    o.append(text(W - 48, 26, f"{STATS.get('total_contributions', 386)} CONTRIBUTIONS IN 12 MONTHS",
-                  size=10, fill=P["accent"], weight="700", family=MONO, ls=1.2, anchor="end"))
+    o.append(f'<circle cx="48" cy="22" r="4.5" fill="{P["accent_bright"]}" class="pulse"/>')
+    o.append(label(64, 26, "ANNUAL CONTRIBUTION CADENCE  //  12-MONTH SPECTRUM EQUALIZER", P, ls=1.8))
+    o.append(text(W - 48, 26, f"{STATS.get('total_contributions', 386)} CONTRIBUTIONS RECORDED", size=10,
+                  fill=P["accent_bright"], weight="700", family=MONO, ls=1.5, anchor="end"))
 
-    # Faint Oscilloscope Reference Lines
-    base_y = 130
-    for level, l_val in ((90, "100"), (60, "200"), (30, "300")):
-        o.append(f'<line x1="48" y1="{base_y - level}" x2="{W-48}" y2="{base_y - level}" stroke="{P["rule"]}" stroke-width="0.6" stroke-dasharray="2 6"/>')
+    base_y = 195
+    for level in [35, 75, 115]:
+        o.append(f'<line x1="48" y1="{base_y - level}" x2="{W - 48}" y2="{base_y - level}" stroke="{P["rule"]}" stroke-width="0.6" stroke-dasharray="2 6"/>')
 
     m_data = STATS.get("monthly", [])
     if m_data:
@@ -714,38 +1002,38 @@ def bars(t, motion=True):
         n = len(m_data)
         bar_w = 76
         gap = (W - 96 - (n * bar_w)) / (n - 1) if n > 1 else 0
-        max_h = 72
+        max_h = 110
 
         for i, d in enumerate(m_data):
             bx = 48 + i * (bar_w + gap)
             count = d["count"]
             bh = int((count / max_c) * max_h)
-            bh = max(bh, 4)
+            bh = max(bh, 6)
             by = base_y - bh
 
-            # Kinetic Multi-Tier Equalizer Segments
             eq_cls = f"eq{(i % 3) + 1}" if (motion and count > 0) else ""
-            fill_val = "url(#eq_grad)" if count == max_c else P["bar"]
+            fill_val = f"url(#eq_grad_{t})" if count == max_c else P["bar"]
 
             o.append(f'<g class="{eq_cls}">')
-            # The Main Equalizer Column
-            o.append(f'<rect x="{bx:.1f}" y="{by}" width="{bar_w}" height="{bh}" rx="4" fill="{fill_val}"/>')
+            o.append(f'<rect x="{bx:.1f}" y="{by}" width="{bar_w}" height="{bh}" rx="5" fill="{fill_val}"/>')
+            if count > 40:
+                o.append(f'<rect x="{bx:.1f}" y="{by-6}" width="{bar_w}" height="2.5" rx="1" fill="{P["green"]}"/>')
+            o.append('</g>')
 
-            # Glowing Floating Peak Needle for high bars
-            if count > 50:
-                o.append(f'<rect x="{bx:.1f}" y="{by-5}" width="{bar_w}" height="2" rx="1" fill="{P["accent_bright"]}"/>')
-            o.append(f'</g>')
-
-            o.append(text(bx + bar_w / 2, base_y + 16, d["month"][-2:], size=9.5, fill=P["micro"],
-                          weight="600", family=MONO, anchor="middle"))
+            o.append(text(bx + bar_w / 2, base_y + 18, d["month"][-2:], size=10, fill=P["micro"],
+                          weight="700", family=MONO, anchor="middle"))
             if count > 0:
                 col = P["text"] if count == max_c else P["dim"]
-                o.append(text(bx + bar_w / 2, by - 8, str(count), size=9.5, fill=col,
-                              weight="700", family=MONO, anchor="middle"))
+                o.append(text(bx + bar_w / 2, by - 10, str(count), size=10, fill=col,
+                              weight="800", family=MONO, anchor="middle"))
 
     o.append("</svg>")
     return "".join(o)
 
+
+# ==============================================================================
+# README GLUE & BUILD ORCHESTRATION
+# ==============================================================================
 def _replace_block(md, key, body):
     a, b = f"<!-- {key}:start -->", f"<!-- {key}:end -->"
     if a not in md or b not in md:
@@ -812,6 +1100,10 @@ def main():
 
     jobs = {
         "sys-hero": hero,
+        "card-mamba": card_mamba,
+        "card-typenscrape": card_typenscrape,
+        "card-voltsense": card_voltsense,
+        "card-meemomini": card_meemomini,
         "sys-topology": topology,
         "sys-benchmark": benchmark,
         "sys-signal": telemetry,
