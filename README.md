@@ -1,22 +1,22 @@
-<!-- APPLE KEYNOTE HERO PRODUCT REVEAL -->
+<!-- PRECISION ARCHITECTURE DISPLAY HERO -->
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: no-preference)" srcset="assets/apple-hero-dark-anim.svg">
-  <source media="(prefers-color-scheme: light) and (prefers-reduced-motion: no-preference)" srcset="assets/apple-hero-light-anim.svg">
-  <source media="(prefers-color-scheme: dark)" srcset="assets/apple-hero-dark-static.svg">
-  <source media="(prefers-color-scheme: light)" srcset="assets/apple-hero-light-static.svg">
-  <img src="assets/apple-hero-light-static.svg" width="100%" alt="Kian B. — Pro performance. Silicon to model.">
+  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: no-preference)" srcset="assets/sys-hero-dark-anim.svg">
+  <source media="(prefers-color-scheme: light) and (prefers-reduced-motion: no-preference)" srcset="assets/sys-hero-light-anim.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/sys-hero-dark-static.svg">
+  <source media="(prefers-color-scheme: light)" srcset="assets/sys-hero-light-static.svg">
+  <img src="assets/sys-hero-light-static.svg" width="100%" alt="Kian B. — Engineered at the limit. From silicon to model.">
 </picture>
 </p>
 
-<!-- APPLE SEGMENTED QUICK NAVIGATION -->
+<!-- PRECISION SEGMENTED QUICK NAVIGATION -->
 <p align="center">
-  <a href="#01--unified-architecture"><code>[ The Architecture ]</code></a> &nbsp;·&nbsp;
-  <a href="#02--empirical-performance"><code>[ Performance ]</code></a> &nbsp;·&nbsp;
-  <a href="#03--technical-specifications"><code>[ Tech Specs ]</code></a> &nbsp;·&nbsp;
-  <a href="#04--airdrop-telemetry-protocol"><code>[ AirDrop Protocol ]</code></a> &nbsp;·&nbsp;
-  <a href="#05--annual-pulse"><code>[ Activity ]</code></a> &nbsp;·&nbsp;
-  <a href="#06--priority-inquiry"><code>[ Contact ]</code></a>
+  <a href="#01--system-topology"><code>[ System Topology ]</code></a> &nbsp;·&nbsp;
+  <a href="#02--empirical-benchmark-matrix"><code>[ Benchmark Matrix ]</code></a> &nbsp;·&nbsp;
+  <a href="#03--technical-specifications"><code>[ Technical Specs ]</code></a> &nbsp;·&nbsp;
+  <a href="#04--autonomous-signal-mesh"><code>[ Signal Mesh ]</code></a> &nbsp;·&nbsp;
+  <a href="#05--annual-pulse"><code>[ Annual Pulse ]</code></a> &nbsp;·&nbsp;
+  <a href="#06--direct-inquiry"><code>[ Direct Inquiry ]</code></a>
 </p>
 
 > [!NOTE]
@@ -24,17 +24,17 @@
 
 ---
 
-### 01 / unified architecture
+### 01 / system topology
 
-Built from the silicon up. A heterogeneous computational architecture coordinating four discrete layers — from direct machine memory allocation to edge microcontrollers and client vision:
+Built from the physical machine upward. A heterogeneous computational fabric coordinating four discrete layers — from direct machine memory allocation to edge microcontrollers and client vision:
 
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: no-preference)" srcset="assets/apple-chip-dark-anim.svg">
-  <source media="(prefers-color-scheme: light) and (prefers-reduced-motion: no-preference)" srcset="assets/apple-chip-light-anim.svg">
-  <source media="(prefers-color-scheme: dark)" srcset="assets/apple-chip-dark-static.svg">
-  <source media="(prefers-color-scheme: light)" srcset="assets/apple-chip-light-static.svg">
-  <img src="assets/apple-chip-light-static.svg" width="100%" alt="K1 Unified Silicon Engine Architecture">
+  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: no-preference)" srcset="assets/sys-topology-dark-anim.svg">
+  <source media="(prefers-color-scheme: light) and (prefers-reduced-motion: no-preference)" srcset="assets/sys-topology-light-anim.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/sys-topology-dark-static.svg">
+  <source media="(prefers-color-scheme: light)" srcset="assets/sys-topology-light-static.svg">
+  <img src="assets/sys-topology-light-static.svg" width="100%" alt="Heterogeneous Computational Fabric Topology">
 </picture>
 </p>
 
@@ -45,17 +45,17 @@ Built from the silicon up. A heterogeneous computational architecture coordinati
 
 ---
 
-### 02 / empirical performance
+### 02 / empirical benchmark matrix
 
 Claims are cheap. This is Black Mamba's benchmark suite executed against CPython 3.14 on identical host hardware:
 
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: no-preference)" srcset="assets/apple-benchmark-dark-anim.svg">
-  <source media="(prefers-color-scheme: light) and (prefers-reduced-motion: no-preference)" srcset="assets/apple-benchmark-light-anim.svg">
-  <source media="(prefers-color-scheme: dark)" srcset="assets/apple-benchmark-dark-static.svg">
-  <source media="(prefers-color-scheme: light)" srcset="assets/apple-benchmark-light-static.svg">
-  <img src="assets/apple-benchmark-light-static.svg" width="100%" alt="Benchmark Performance vs CPython 3.14">
+  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: no-preference)" srcset="assets/sys-benchmark-dark-anim.svg">
+  <source media="(prefers-color-scheme: light) and (prefers-reduced-motion: no-preference)" srcset="assets/sys-benchmark-light-anim.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/sys-benchmark-dark-static.svg">
+  <source media="(prefers-color-scheme: light)" srcset="assets/sys-benchmark-light-static.svg">
+  <img src="assets/sys-benchmark-light-static.svg" width="100%" alt="Empirical Benchmark Matrix vs CPython 3.14">
 </picture>
 </p>
 
@@ -158,11 +158,11 @@ Recent commits to this profile repository:
 
 <!-- log:start -->
 ```
+5092902  chore: refresh profile assets
 7deb6c0  fix: resolve SVG typographical glyph encoding and sync log state
 63fc269  chore: refresh profile assets
 ab8ad17  chore: merge remote refresh bot stats
 e22ae2d  feat: Apple Keynote & Space Black Silicon architecture overhaul
-e60c23b  chore: refresh profile assets
 ```
 <!-- log:end -->
 
@@ -170,7 +170,7 @@ e60c23b  chore: refresh profile assets
 
 ---
 
-### 04 / airdrop telemetry protocol
+### 04 / autonomous signal mesh
 
 This profile runs an **autonomous event-driven state machine** powered entirely by GitHub Actions IssueOps. You can transmit a live handshake signal directly through GitHub without external servers or databases.
 
@@ -178,17 +178,17 @@ When you submit a handshake, a GitHub Action validates your transmission, append
 
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: no-preference)" srcset="assets/apple-radar-dark-anim.svg">
-  <source media="(prefers-color-scheme: light) and (prefers-reduced-motion: no-preference)" srcset="assets/apple-radar-light-anim.svg">
-  <source media="(prefers-color-scheme: dark)" srcset="assets/apple-radar-dark-static.svg">
-  <source media="(prefers-color-scheme: light)" srcset="assets/apple-radar-light-static.svg">
-  <img src="assets/apple-radar-light-static.svg" width="100%" alt="Real-time IssueOps Telemetry Radar">
+  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: no-preference)" srcset="assets/sys-signal-dark-anim.svg">
+  <source media="(prefers-color-scheme: light) and (prefers-reduced-motion: no-preference)" srcset="assets/sys-signal-light-anim.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/sys-signal-dark-static.svg">
+  <source media="(prefers-color-scheme: light)" srcset="assets/sys-signal-light-static.svg">
+  <img src="assets/sys-signal-light-static.svg" width="100%" alt="Real-time IssueOps Signal Mesh">
 </picture>
 </p>
 
 <p align="center">
   <a href="https://github.com/kicode01/kicode01/issues/new?template=telemetry_ping.yml&title=%5BTELEMETRY+PING%5D+from+%40your-handle">
-    <img src="https://img.shields.io/badge/⚡_TRANSMIT_AIRDROP_HANDSHAKE-CLICK_TO_TRIGGER-blue?style=for-the-badge&logo=apple&labelColor=000000&color=2997ff" alt="Transmit Handshake">
+    <img src="https://img.shields.io/badge/⚡_TRANSMIT_SIGNAL-TRIGGER_DISPATCH-blue?style=for-the-badge&logo=github&labelColor=08080a&color=2563eb" alt="Transmit Signal">
   </a>
 </p>
 
@@ -206,11 +206,11 @@ When you submit a handshake, a GitHub Action validates your transmission, append
 
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: no-preference)" srcset="assets/apple-bars-dark-anim.svg">
-  <source media="(prefers-color-scheme: light) and (prefers-reduced-motion: no-preference)" srcset="assets/apple-bars-light-anim.svg">
-  <source media="(prefers-color-scheme: dark)" srcset="assets/apple-bars-dark-static.svg">
-  <source media="(prefers-color-scheme: light)" srcset="assets/apple-bars-light-static.svg">
-  <img src="assets/apple-bars-light-static.svg" width="100%" alt="Monthly contribution pulse across the last twelve months">
+  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: no-preference)" srcset="assets/sys-pulse-dark-anim.svg">
+  <source media="(prefers-color-scheme: light) and (prefers-reduced-motion: no-preference)" srcset="assets/sys-pulse-light-anim.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/sys-pulse-dark-static.svg">
+  <source media="(prefers-color-scheme: light)" srcset="assets/sys-pulse-light-static.svg">
+  <img src="assets/sys-pulse-light-static.svg" width="100%" alt="Monthly contribution pulse across the last twelve months">
 </picture>
 </p>
 
@@ -224,7 +224,7 @@ Filter repositories by verified language:
 
 ---
 
-### 06 / priority inquiry
+### 06 / direct inquiry
 
 The fastest way in is a [prefilled ticket](https://github.com/kicode01/kicode01/issues/new?title=Hi%20Kian&body=Where%20I%20found%20you%3A%0A%0AWhat%20you%27re%20working%20on%3A%0A%0A) — it opens with context and lands directly in my checked notifications.
 
@@ -234,6 +234,6 @@ Portfolio: **[kicode01.github.io](https://kicode01.github.io/)**
 
 <p align="center">
   <sub>
-    Vector assets generated from the GitHub API by <a href="./generate.py"><code>generate.py</code></a> — hand-crafted SVG in Apple Space Black & Titanium, animated via CSS, theme-aware via <code>prefers-color-scheme</code>, and accessible via <code>prefers-reduced-motion</code>. Powered by GitHub Actions IssueOps. Zero third-party stat cards, zero GIFs, zero screenshots.
+    Vector assets generated from the GitHub API by <a href="./generate.py"><code>generate.py</code></a> — hand-crafted SVG in Obsidian Titanium, animated via CSS, theme-aware via <code>prefers-color-scheme</code>, and accessible via <code>prefers-reduced-motion</code>. Powered by GitHub Actions IssueOps. Zero third-party stat cards, zero GIFs, zero screenshots.
   </sub>
 </p>
