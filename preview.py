@@ -59,17 +59,12 @@ def build(theme):
     body = (body.replace('<themed-picture data-catalyst-inline="true">', "")
                 .replace("</themed-picture>", ""))
 
-    # <picture> picks its <source> by prefers-color-scheme, which headless Chrome
-    # reports as dark regardless of the page. Strip the sources and pin the <img>
-    # to the variant we want to inspect, so both files are deterministic.
-    #
-    # The preview uses the `-static` twins: a screenshot fires before any wall
-    # clock elapses, so the animated files would capture at t=0 with everything
-    # still at opacity 0. The settled state is what a reader sees after ~2s, and
-    # it is what these previews should show.
+    # Rewrite full raw URLs to local assets path for offline preview
+    body = body.replace("https://raw.githubusercontent.com/kicode01/kicode01/main/assets/", "assets/")
+
     body = re.sub(r"<source\b[^>]*>", "", body)
-    if theme == "dark":
-        body = body.replace("-light-static.svg", "-dark-static.svg")
+    if theme == "light":
+        body = body.replace("-dark-anim.svg", "-light-anim.svg")
 
     vars_ = {
         "light": ("#ffffff", "#1f2328", "#d1d9e0", "#0969da", "#f6f8fa", "#f6f8fa",

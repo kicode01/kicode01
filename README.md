@@ -1,11 +1,9 @@
 <!-- PRECISION ARCHITECTURE DISPLAY HERO -->
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: no-preference)" srcset="assets/sys-hero-dark-anim.svg">
-  <source media="(prefers-color-scheme: light) and (prefers-reduced-motion: no-preference)" srcset="assets/sys-hero-light-anim.svg">
-  <source media="(prefers-color-scheme: dark)" srcset="assets/sys-hero-dark-static.svg">
-  <source media="(prefers-color-scheme: light)" srcset="assets/sys-hero-light-static.svg">
-  <img src="assets/sys-hero-light-static.svg" width="100%" alt="Kian B. — Engineered at the limit. From silicon to model.">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-hero-dark-anim.svg">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-hero-light-anim.svg">
+  <img src="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-hero-dark-anim.svg" width="100%" alt="Kian B. — Engineered at the limit. From silicon to model.">
 </picture>
 </p>
 
@@ -30,11 +28,9 @@ Built from the physical machine upward. A heterogeneous computational fabric coo
 
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: no-preference)" srcset="assets/sys-topology-dark-anim.svg">
-  <source media="(prefers-color-scheme: light) and (prefers-reduced-motion: no-preference)" srcset="assets/sys-topology-light-anim.svg">
-  <source media="(prefers-color-scheme: dark)" srcset="assets/sys-topology-dark-static.svg">
-  <source media="(prefers-color-scheme: light)" srcset="assets/sys-topology-light-static.svg">
-  <img src="assets/sys-topology-light-static.svg" width="100%" alt="Heterogeneous Computational Fabric Topology">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-topology-dark-anim.svg">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-topology-light-anim.svg">
+  <img src="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-topology-dark-anim.svg" width="100%" alt="Heterogeneous Computational Fabric Topology">
 </picture>
 </p>
 
@@ -51,11 +47,9 @@ Claims are cheap. This is Black Mamba's benchmark suite executed against CPython
 
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: no-preference)" srcset="assets/sys-benchmark-dark-anim.svg">
-  <source media="(prefers-color-scheme: light) and (prefers-reduced-motion: no-preference)" srcset="assets/sys-benchmark-light-anim.svg">
-  <source media="(prefers-color-scheme: dark)" srcset="assets/sys-benchmark-dark-static.svg">
-  <source media="(prefers-color-scheme: light)" srcset="assets/sys-benchmark-light-static.svg">
-  <img src="assets/sys-benchmark-light-static.svg" width="100%" alt="Empirical Benchmark Matrix vs CPython 3.14">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-benchmark-dark-anim.svg">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-benchmark-light-anim.svg">
+  <img src="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-benchmark-dark-anim.svg" width="100%" alt="Empirical Benchmark Matrix vs CPython 3.14">
 </picture>
 </p>
 
@@ -158,11 +152,11 @@ Recent commits to this profile repository:
 
 <!-- log:start -->
 ```
+5fa0271  chore: refresh profile assets
 bb8a1be  feat: motion-first kinetic graphics overhaul (waveforms, radar sweep, live topology)
 9da6654  chore: refresh profile assets
 1397b09  feat: Precision Systems Architecture identity (Obsidian & Laser Cobalt)
 5092902  chore: refresh profile assets
-7deb6c0  fix: resolve SVG typographical glyph encoding and sync log state
 ```
 <!-- log:end -->
 
@@ -178,11 +172,9 @@ When you submit a handshake, a GitHub Action validates your transmission, append
 
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: no-preference)" srcset="assets/sys-signal-dark-anim.svg">
-  <source media="(prefers-color-scheme: light) and (prefers-reduced-motion: no-preference)" srcset="assets/sys-signal-light-anim.svg">
-  <source media="(prefers-color-scheme: dark)" srcset="assets/sys-signal-dark-static.svg">
-  <source media="(prefers-color-scheme: light)" srcset="assets/sys-signal-light-static.svg">
-  <img src="assets/sys-signal-light-static.svg" width="100%" alt="Real-time IssueOps Signal Mesh">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-signal-dark-anim.svg">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-signal-light-anim.svg">
+  <img src="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-signal-dark-anim.svg" width="100%" alt="Real-time IssueOps Signal Mesh">
 </picture>
 </p>
 
@@ -206,11 +198,9 @@ When you submit a handshake, a GitHub Action validates your transmission, append
 
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark) and (prefers-reduced-motion: no-preference)" srcset="assets/sys-pulse-dark-anim.svg">
-  <source media="(prefers-color-scheme: light) and (prefers-reduced-motion: no-preference)" srcset="assets/sys-pulse-light-anim.svg">
-  <source media="(prefers-color-scheme: dark)" srcset="assets/sys-pulse-dark-static.svg">
-  <source media="(prefers-color-scheme: light)" srcset="assets/sys-pulse-light-static.svg">
-  <img src="assets/sys-pulse-light-static.svg" width="100%" alt="Monthly contribution pulse across the last twelve months">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-pulse-dark-anim.svg">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-pulse-light-anim.svg">
+  <img src="https://raw.githubusercontent.com/kicode01/kicode01/main/assets/sys-pulse-dark-anim.svg" width="100%" alt="Monthly contribution pulse across the last twelve months">
 </picture>
 </p>
 
