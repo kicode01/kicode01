@@ -297,7 +297,7 @@ def chip(t, motion=True):
     x2 = dx + dw - cw - 16
     o.append(f'<rect x="{x2}" y="{y1}" width="{cw}" height="{ch}" rx="10" fill="url(#core_glow)" stroke="{P["rule_glow"]}" stroke-width="1"/>')
     o.append(text(x2 + 20, y1 + 28, "NEURAL INFERENCE CASCADE", size=12, fill=P["text"], weight="800", family=SANS))
-    o.append(text(x2 + cw - 20, y1 + 28, "TYPEN置CRAPE", size=10, fill=P["purple"], weight="700", family=MONO, anchor="end"))
+    o.append(text(x2 + cw - 20, y1 + 28, "TYPENSCRAPE", size=10, fill=P["purple"], weight="700", family=MONO, anchor="end"))
     o.append(rule(x2 + 20, y1 + 38, x2 + cw - 20, y1 + 38, P["rule"]))
     o.append(text(x2 + 20, y1 + 60, "• Multi-Tier Routing: Groq (Llama-3 @ 420ms) degrades gracefully to Gemini", size=11, fill=P["dim"], family=SANS))
     o.append(text(x2 + 20, y1 + 82, "• Memory Bounding: 16-chunk IndexedDB paging prevents mobile browser OOM", size=11, fill=P["dim"], family=SANS))
