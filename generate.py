@@ -101,14 +101,13 @@ def _previous_stats():
         return json.load(f)
 
 
-def cross_repo_commits(n=6):
+def cross_repo_commits(n=5):
     tracked = [
-        "voltsense-iot",
         "blackmamba-lang",
+        "shim-platform",
         "typenscrape",
         "meemomini",
         "klyph-txt",
-        "shim-platform",
     ]
     results = []
     p = os.path.join(ROOT, "stats.json")
@@ -332,7 +331,7 @@ def hero(t):
                   size=12, fill=P["muted"], weight="500", family=MONO))
 
     o.append(text(28, 78, "Hi, I'm Kian.", size=32, fill=P["text"], weight="800", ls=-0.7))
-    o.append(text(28, 106, "I build compilers, ESP32 firmware, and practical AI apps —",
+    o.append(text(28, 106, "I build compilers, full-stack web systems, and practical AI apps —",
                   size=14, fill=P["sub"], weight="400"))
     o.append(text(28, 126, "focusing on how software actually behaves down at the metal.",
                   size=14, fill=P["sub"], weight="400"))
@@ -340,10 +339,10 @@ def hero(t):
     # Sketchbook pills
     pills = [
         ("Python", 66, P["lavender_bg"], P["lavender"], P["lavender_border"]),
-        ("C / C++", 72, P["stage"], P["sub"], P["stage_border"]),
         ("TypeScript", 88, P["stage"], P["sub"], P["stage_border"]),
+        ("C / C++", 72, P["stage"], P["sub"], P["stage_border"]),
         ("x86-64 & WASM", 112, P["blush_bg"], P["blush"], P["blush_border"]),
-        ("ESP32", 62, P["stage"], P["sub"], P["stage_border"]),
+        ("Next.js", 70, P["stage"], P["sub"], P["stage_border"]),
     ]
     px = 28
     for lbl, pw, bg, fg, bd in pills:
@@ -419,49 +418,46 @@ def card_mamba(t):
 
 
 # ==============================================================================
-# 02 / SKETCHBOOK CARD: VOLTSENSE IOT (410 x 204)
+# 02 / SKETCHBOOK CARD: SHIM PLATFORM (410 x 204)
 # ==============================================================================
-def card_voltsense(t):
+def card_shim(t):
     W, H = 410, 204
     P = THEMES[t]
     o = [head(W, H)]
     o.append(sketch_card(W, H, P))
 
-    o.append(tag_pill(22, 18, 108, 22, "Firmware & IoT", P["blush_bg"], P["blush"], P["blush_border"], size=11))
-    o.append(text(W - 24, 33, "0 keys on flash", size=12, fill=P["lavender"], weight="700", family=MONO, anchor="end"))
+    o.append(tag_pill(22, 18, 108, 22, "Web Systems", P["blush_bg"], P["blush"], P["blush_border"], size=11))
+    o.append(text(W - 24, 33, "QR Verified", size=12, fill=P["lavender"], weight="700", family=MONO, anchor="end"))
 
-    o.append(text(22, 64, "VoltSense", size=20, fill=P["text"], weight="800", ls=-0.3))
-    o.append(text(22, 84, "ESP32 load monitor & isolated cloud relay console.", size=13, fill=P["sub"]))
+    o.append(text(22, 64, "Shim", size=20, fill=P["text"], weight="800", ls=-0.3))
+    o.append(text(22, 84, "Bulk verifiable credentials & font-metric layout.", size=13, fill=P["sub"]))
 
-    # Refined Line-Art Stage: ESP32 IC Chip -> Cloud Lock -> Operator PWA
+    # Refined Line-Art Stage: Kerning Layout -> QR Sign -> Audit Log
     sx, sy, sw, sh = 22, 98, W - 44, 64
     o.append(f'<rect x="{sx}" y="{sy}" width="{sw}" height="{sh}" rx="10" fill="{P["stage"]}" stroke="{P["stage_border"]}" stroke-width="1.4" filter="url(#ink)"/>')
 
-    # Node 1: Sketch ESP32 Chip with little pins
-    cx, cy = sx + 56, sy + 32
-    for py_off in (-9, 0, 9):
-        o.append(f'<line x1="{cx-42}" y1="{cy+py_off}" x2="{cx-34}" y2="{cy+py_off}" stroke="{P["muted"]}" stroke-width="1.8" stroke-linecap="round"/>')
-        o.append(f'<line x1="{cx+34}" y1="{cy+py_off}" x2="{cx+42}" y2="{cy+py_off}" stroke="{P["muted"]}" stroke-width="1.8" stroke-linecap="round"/>')
-    o.append(f'<rect x="{cx-34}" y="{cy-16}" width="68" height="32" rx="6" fill="{P["card"]}" stroke="{P["border"]}" stroke-width="1.5" filter="url(#ink)"/>')
-    o.append(text(cx, cy + 4, "ESP32", size=11.5, fill=P["text"], weight="700", family=MONO, anchor="middle"))
+    # Node 1: Kerning Layout
+    cx, cy = sx + 58, sy + 32
+    o.append(f'<rect x="{cx-44}" y="{cy-16}" width="88" height="32" rx="6" fill="{P["card"]}" stroke="{P["border"]}" stroke-width="1.5" filter="url(#ink)"/>')
+    o.append(text(cx, cy + 4, "Font Kerning", size=11, fill=P["text"], weight="700", family=MONO, anchor="middle"))
 
     # Dashed wave connector 1
-    o.append(f'<line x1="{cx+46}" y1="{cy}" x2="{cx+78}" y2="{cy}" stroke="{P["muted"]}" stroke-width="1.5" stroke-dasharray="3 3"/>')
+    o.append(f'<line x1="{cx+48}" y1="{cy}" x2="{cx+74}" y2="{cy}" stroke="{P["muted"]}" stroke-width="1.5" stroke-dasharray="3 3"/>')
 
-    # Node 2: Vercel Auth Boundary (highlighted in blush)
-    vx = sx + 183
-    o.append(f'<rect x="{vx-44}" y="{cy-16}" width="88" height="32" rx="6" fill="{P["blush_bg"]}" stroke="{P["blush_border"]}" stroke-width="1.5" filter="url(#ink)"/>')
-    o.append(text(vx, cy + 4, "Vercel Key", size=11, fill=P["blush"], weight="700", family=MONO, anchor="middle"))
+    # Node 2: QR Verification (highlighted in blush)
+    vx = sx + 185
+    o.append(f'<rect x="{vx-48}" y="{cy-16}" width="96" height="32" rx="6" fill="{P["blush_bg"]}" stroke="{P["blush_border"]}" stroke-width="1.5" filter="url(#ink)"/>')
+    o.append(text(vx, cy + 4, "QR Verify", size=11, fill=P["blush"], weight="700", family=MONO, anchor="middle"))
 
     # Dashed wave connector 2
-    o.append(f'<line x1="{vx+48}" y1="{cy}" x2="{vx+78}" y2="{cy}" stroke="{P["muted"]}" stroke-width="1.5" stroke-dasharray="3 3"/>')
+    o.append(f'<line x1="{vx+52}" y1="{cy}" x2="{vx+78}" y2="{cy}" stroke="{P["muted"]}" stroke-width="1.5" stroke-dasharray="3 3"/>')
 
-    # Node 3: React PWA
-    rx = sx + 308
+    # Node 3: Audit Trail
+    rx = sx + 310
     o.append(f'<rect x="{rx-42}" y="{cy-16}" width="84" height="32" rx="6" fill="{P["card"]}" stroke="{P["border"]}" stroke-width="1.5" filter="url(#ink)"/>')
-    o.append(text(rx, cy + 4, "React PWA", size=11, fill=P["text"], weight="700", family=MONO, anchor="middle"))
+    o.append(text(rx, cy + 4, "Audit Log", size=11, fill=P["text"], weight="700", family=MONO, anchor="middle"))
 
-    o.append(text(22, 184, "C++ · ESP32 · Firebase · React 19", size=11, fill=P["muted"], family=MONO))
+    o.append(text(22, 184, "TypeScript · Next.js 16 · Prisma", size=11, fill=P["muted"], family=MONO))
     o.append(text(W - 24, 184, "Live app ↗", size=12, fill=P["lavender"], weight="600", anchor="end"))
 
     o.append("</svg>")
@@ -776,7 +772,7 @@ def main():
     jobs = {
         "sys-hero": hero,
         "card-mamba": card_mamba,
-        "card-voltsense": card_voltsense,
+        "card-shim": card_shim,
         "card-typenscrape": card_typenscrape,
         "card-meemomini": card_meemomini,
         "sys-topology": topology,
