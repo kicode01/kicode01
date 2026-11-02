@@ -41,7 +41,7 @@
 </p>
 
 <!-- signal:start -->
-**311 of 404** contributions landed in October alone.
+**354 of 521** contributions landed in October alone.
 <!-- signal:end -->
 
 Filter repositories by language:
@@ -49,11 +49,11 @@ Filter repositories by language:
 
 <!-- pulse:start -->
 ```
-blackmamba-lang    fc780cd  2026-10-29  feat(v1.3.0): full Python syntactic parity & ergonomics (context managers, comprehensions, dunder operators, match guards)
-typenscrape        ec8d20d  2026-10-24  Bring the repository up to the current build
-meemomini          0af15f7  2026-10-24  Publish meemomini: browser photo booth PWA
+blackmamba-lang    b97839a  2026-10-30  feat(v2.1): Pillar 0 (In-Browser WASM Compiler, Jupyter Kernel, WebGPU/SPIR-V Backend, 0.4ms Serverless Deploy) + Consumer Playground Speed Duel
+shim-platform      767a03a  2026-10-30  chore: purge root junk files, untrack scratch directories, and clean repository structure
+typenscrape        0211ebd  2026-10-30  docs: add MIT license and rewrite README as product showcase
+meemomini          f2bf152  2026-10-30  refactor: consolidate backend, scripts, and deployment configs into deploy/ directory
 klyph-txt          148b6e7  2026-10-23  chore: track logo-design-skill directly instead of embedded submodule
-shim-platform      92e1bf7  2026-10-12  fix: resolve case-sensitive lookups, cookie security protocol, template coordinate guards, and UI error states
 ```
 <!-- pulse:end -->
 </details>
