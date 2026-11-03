@@ -116,13 +116,20 @@ def _previous_stats():
         return json.load(f)
 
 
-def cross_repo_commits(n=5):
+def cross_repo_commits(n=8):
     tracked = [
+        "code-dissolver",
+        "code-archeologist",
+        "data-time-machine",
+        "spec-weaver",
+        "agent-immune-system",
+        "llm-distiller",
+        "toccata-os",
         "blackmamba-lang",
+        "nanobit",
         "shim-platform",
         "typenscrape",
         "meemomini",
-        "klyph-txt",
     ]
     results = []
     p = os.path.join(ROOT, "stats.json")
@@ -345,20 +352,20 @@ def hero(t):
 
     # Apple-style display title + two-tone statement (Primary + Titanium Gray)
     o.append(text(26, 76, "Kian.", size=34, fill=P["text"], weight="700", ls=-1.0))
-    o.append(text(114, 76, "Compilers, web platforms, and AI.",
-                  size=21, fill=P["muted"], weight="600", ls=-0.5))
+    o.append(text(114, 76, "Compilers, AI agents, and web systems.",
+                  size=20.5, fill=P["muted"], weight="600", ls=-0.5))
 
-    o.append(text(26, 105, "Building native x86-64 toolchains, verifiable web systems,",
-                  size=14, fill=P["sub"], weight="400", ls=-0.1))
-    o.append(text(26, 125, "and client-side WebAssembly models with zero runtime bloat.",
-                  size=14, fill=P["sub"], weight="400", ls=-0.1))
+    o.append(text(26, 105, "Building native x86-64/WASM/WebGPU compilers, formal verification",
+                  size=13.8, fill=P["sub"], weight="400", ls=-0.1))
+    o.append(text(26, 125, "engines for AI agents, and verifiable full-stack platforms.",
+                  size=13.8, fill=P["sub"], weight="400", ls=-0.1))
 
     # Frosted Apple stack pills
     tags = [
         ("Python", 64),
         ("TypeScript", 82),
-        ("C / C++", 68),
         ("LLVM & WASM", 104),
+        ("WebGPU", 72),
         ("Next.js 16", 82),
     ]
     tx = 26
@@ -378,8 +385,8 @@ def hero(t):
 
     # ── CELL 4: Bottom-Right Activity Bento Cell (324 x 87) ──
     o.append(bento_box(515, 100, 324, 87, P, rx=20))
-    c_total = STATS.get("total_contributions", 404)
-    r_total = STATS.get("public_repos", 20)
+    c_total = STATS.get("total_contributions", 557)
+    r_total = STATS.get("public_repos", 27)
     o.append(text(535, 141, str(c_total), size=26, fill=P["text"], weight="700", ls=-0.8))
     o.append(text(535, 164, f"Contributions  ·  {r_total} public repos", size=11.5, fill=P["muted"], weight="500", ls=-0.1))
 
@@ -410,12 +417,12 @@ def card_mamba(t):
     o.append(bento_box(1, 1, W - 2, H - 2, P, rx=22))
 
     # Eyebrow & right link
-    o.append(text(26, 32, "COMPILER & NATIVE RUNTIME", size=10.5, fill=P["blue"], weight="600", ls=0.6))
+    o.append(text(26, 32, "COMPILER & NATIVE RUNTIME  ·  v2.1", size=10.5, fill=P["blue"], weight="600", ls=0.6))
     o.append(text(W - 26, 32, "Explore ↗", size=12, fill=P["blue"], weight="500", anchor="end"))
 
     # Headline & concise subtitle
     o.append(text(26, 62, "Black Mamba", size=24, fill=P["text"], weight="700", ls=-0.6))
-    o.append(text(26, 84, "Python syntax compiled to native x86-64 & WASM.", size=13.5, fill=P["muted"], weight="400", ls=-0.1))
+    o.append(text(26, 84, "Python compiled to native x86-64, WASM & WebGPU.", size=13.5, fill=P["muted"], weight="400", ls=-0.1))
 
     # Apple Silicon-style benchmark comparison widget
     wx, wy, ww, wh = 24, 100, W - 48, 74
@@ -492,7 +499,7 @@ def card_typenscrape(t):
     o.append(bento_box(1, 1, W - 2, H - 2, P, rx=22))
 
     o.append(text(26, 32, "APPLIED AI & OFFLINE STORAGE", size=10.5, fill=P["purple"], weight="600", ls=0.6))
-    o.append(text(W - 26, 32, "Explore ↗", size=12, fill=P["blue"], weight="500", anchor="end"))
+    o.append(text(W - 26, 32, "Live app ↗", size=12, fill=P["blue"], weight="500", anchor="end"))
 
     o.append(text(26, 62, "TypenScrape", size=24, fill=P["text"], weight="700", ls=-0.6))
     o.append(text(26, 84, "Offline-first recipe PWA with automatic LLM failover.", size=13.5, fill=P["muted"], weight="400", ls=-0.1))
@@ -526,7 +533,7 @@ def card_meemomini(t):
     o.append(bento_box(1, 1, W - 2, H - 2, P, rx=22))
 
     o.append(text(26, 32, "ON-DEVICE COMPUTER VISION", size=10.5, fill=P["pink"], weight="600", ls=0.6))
-    o.append(text(W - 26, 32, "Explore ↗", size=12, fill=P["blue"], weight="500", anchor="end"))
+    o.append(text(W - 26, 32, "Live app ↗", size=12, fill=P["blue"], weight="500", anchor="end"))
 
     o.append(text(26, 62, "meemomini", size=24, fill=P["text"], weight="700", ls=-0.6))
     o.append(text(26, 84, "Browser photo booth with client-side WASM segmentation.", size=13.5, fill=P["muted"], weight="400", ls=-0.1))
@@ -571,15 +578,15 @@ def topology(t):
     o = [head(W, H, P)]
     o.append(bento_box(1, 1, W - 2, H - 2, P, rx=22))
 
-    o.append(text(28, 34, "Black Mamba Compilation Architecture", size=16, fill=P["text"], weight="700", ls=-0.3))
-    o.append(text(W - 28, 34, "Python Grammar  →  Native x86-64 & WASM", size=12, fill=P["muted"], weight="500", anchor="end"))
+    o.append(text(28, 34, "Black Mamba v2.1 Compilation Architecture", size=16, fill=P["text"], weight="700", ls=-0.3))
+    o.append(text(W - 28, 34, "Python Grammar  →  Native x86-64, WASM & WebGPU", size=12, fill=P["muted"], weight="500", anchor="end"))
 
     stages = [
         ("01  Parse", "AST + Indent", "Unboxed structs", P["blue"]),
         ("02  C3 MRO", "Diamond Graph", "0.42 ms resolve", P["indigo"]),
         ("03  HM Types", "Static Solver", "1-cycle vtables", P["purple"]),
         ("04  LLVM 18", "Tail-Call Pass", "5M → 0 frames", P["pink"]),
-        ("05  Codegen", "x86-64 & WASM", "0 KB GC overhead", P["orange"]),
+        ("05  Targets", "x86-64 & SPIR-V", "WASM + WebGPU", P["orange"]),
     ]
     sw = 148
     gap = (W - 56 - 5 * sw) / 4
@@ -591,7 +598,7 @@ def topology(t):
         o.append(text(sx + 14, sy + 46, l1, size=13, fill=P["text"], weight="600", ls=-0.2))
         o.append(text(sx + 14, sy + 64, l2, size=11, fill=P["muted"], weight="400"))
 
-    o.append(text(28, 152, "Includes zero-dependency PE32+, ELF64, and 1.7 KB WASM linkers plus native TLS 1.3 & SQL.",
+    o.append(text(28, 152, "v2.1 adds an in-browser WASM compiler, Jupyter kernel, WebGPU/SPIR-V backend & 0.4 ms serverless deploy.",
                   size=12, fill=P["muted"], weight="400"))
 
     o.append("</svg>")
@@ -751,8 +758,17 @@ def update_readme(S, commits, pulse_commits=None):
     if pulse:
         lines = []
         for c in pulse:
-            lines.append(f"{c['repo']:18} {c['sha']}  {c['date']}  {c['msg']}")
+            lines.append(f"{c['repo']:20} {c['sha']}  {c['date']}  {c['msg']}")
         md = _replace_block(md, "pulse", "```\n" + "\n".join(lines) + "\n```")
+
+    lang_counts = S.get("lang_counts", {})
+    if lang_counts:
+        from urllib.parse import quote
+        parts = []
+        for lang, cnt in sorted(lang_counts.items(), key=lambda x: (-x[1], x[0])):
+            q_lang = quote(f"language:{lang}")
+            parts.append(f"[`{lang}`](https://github.com/{LOGIN}?tab=repositories&q={q_lang}) {cnt}")
+        md = _replace_block(md, "langs", " &nbsp;·&nbsp; ".join(parts))
 
     tp = os.path.join(ROOT, "telemetry.json")
     if os.path.exists(tp):
